@@ -52,6 +52,7 @@ C   G l o b a l   P a r a m e t e r s
 C-----------------------------------------------
 #include      "mvsiz_p.inc"
 #include      "comlock.inc"
+#include      "com01_c.inc"
 C-----------------------------------------------
 C   D u m m y   A r g u m e n t s
 C-----------------------------------------------
@@ -93,8 +94,8 @@ C-----------------------------------------------
      .        N2X,N2Y,N2Z,N2N,
      .        LINTERP, LBM, LCM, LAM, XL, YL, ZL,
      .        PN, VX, VY, VZ,
-     .        NNE1,NNE2,NNE4,
-     .        NOLDX,NOLDY,NOLDZ,NI2,S2
+     .        NNE1,NNE2,NNE4
+      my_real NOLDX,NOLDY,NOLDZ,S2
       DATA ITRIA/1,2,2,3,3,4,4,1/
 C--------------------------------------------------------
 C     zone limite interpolation des normales
@@ -182,8 +183,8 @@ C
             END IF
             PENE(I)=MAX(ZERO,GAPV(I)-DD)
             DIST(I)=DD
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) 
-     . write(*,*) 'pene1',PENE(I),GAPV(I),DD,GAPS(I),LA(I),LB(I),LC(I),GAP_MM(I),GAP_NM(I1,I),GAP_NM(I2,I),GAPMXL(I)
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) 
+c     . write(*,*) 'pene1',PENE(I),GAPV(I),DD,GAPS(I),LA(I),LB(I),LC(I),GAP_MM(I),GAP_NM(I1,I),GAP_NM(I2,I),GAPMXL(I)
           ELSE
 
             IF(BB(I) > ZERO .AND. LA(I) < EPSEG .AND. MVOISN(I,IT)/=0)THEN
@@ -234,7 +235,7 @@ C             PENE(I)=MAX(ZERO,GAPV(I)+(XP(I)-XI(I))*N1(I)+(YP(I)-YI(I))*N2(I)+(
               PENE(I)=MAX(ZERO,GAPV(I)+BB(I)) ! The distance against the normal estimates the penetration
 C
               DIST(I)=BB(I)
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene2',PENE(I),GAPV(I),BB(I)
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene2',PENE(I),GAPV(I),BB(I)
             ELSE
 C
 C             All other cases : normal == normal to the segment
@@ -243,7 +244,7 @@ C             All other cases : normal == normal to the segment
               N3(I) = NZ(I)
               PENE(I)=MAX(ZERO,GAPV(I)+BB(I))
               DIST(I)=BB(I)
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene3',PENE(I),GAPV(I),BB(I)
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene3',PENE(I),GAPV(I),BB(I)
             END IF
 
           END IF 
@@ -271,7 +272,7 @@ C             All other cases : normal == normal to the segment
             END IF
             PENE(I)=MAX(ZERO,GAPV(I)-DD)
             DIST(I)=DD
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene4',PENE(I),GAPV(I),DD
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene4',PENE(I),GAPV(I),DD
           ELSEIF(BB(I) > ZERO .AND. ((LA(I) < EPSEG .AND. MVOISN(I,1)/=0).OR.
      .                               (LB(I) < EPSEG .AND. MVOISN(I,2)/=0).OR. 
      .                               (LC(I) < EPSEG .AND. MVOISN(I,4)/=0)))THEN
@@ -336,7 +337,7 @@ C
 C           PENE(I)=MAX(ZERO,GAPV(I)+(XP(I)-XI(I))*N1(I)+(YP(I)-YI(I))*N2(I)+(ZP(I)-ZI(I))*N3(I))
             PENE(I)=MAX(ZERO,GAPV(I)+BB(I)) ! The distance against the normal estimates the penetration
             DIST(I)=BB(I)
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene5',PENE(I),GAPV(I),BB(I)
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene5',PENE(I),GAPV(I),BB(I)
 C
           ELSE
 C
@@ -346,7 +347,7 @@ C           All other cases : normal == normal to the segment
             N3(I) = NZ(I)
             PENE(I)=MAX(ZERO,GAPV(I)+BB(I))
             DIST(I)=BB(I)
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene6',PENE(I),GAPV(I),BB(I)
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene6',PENE(I),GAPV(I),BB(I)
 C
           END IF
 
@@ -723,7 +724,7 @@ C
               N2(I) = N2(I)*NN
               N3(I) = N3(I)*NN
               PENE(I)=MAX(ZERO,GAPS(I)-DC)
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene8',PENE(I),GAPS(I),DC
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene8',PENE(I),GAPS(I),DC
             ELSE
 C
               NNE(I)=NNE(I)-GAPS(I)
@@ -736,7 +737,7 @@ C               Normale horizonale
 C
                 PENE(I)=MAX(ZERO,-NNE(I))
 C                
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene9',PENE(I),GAPV(I),NNE(I)
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene9',PENE(I),GAPV(I),NNE(I)
               ELSE
 C
 C               Normale verticale !
@@ -745,7 +746,7 @@ C               Normale verticale !
                 N3(I) = NZ(I)
 C
                 PENE(I)=MAX(ZERO,GAPV(I)+BB(I))
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene10',PENE(I),GAPV(I),BB(I)
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene10',PENE(I),GAPV(I),BB(I)
               END IF
             END IF
 
@@ -778,7 +779,7 @@ C               Normale horizonale
                 N3(I) = NN3(I)
 C
                 PENE(I)=-NNE(I)
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene11',PENE(I),GAPV(I),NNE(I)
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene11',PENE(I),GAPV(I),NNE(I)
 C                
               ELSE
 C
@@ -788,7 +789,7 @@ C               Normale verticale !
                 N3(I) = NZ(I)
 C
                 PENE(I)=MAX(ZERO,GAPV(I)+BB(I))
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene12',PENE(I),GAPV(I),BB(I)
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene12',PENE(I),GAPV(I),BB(I)
               END IF
 
             END IF
@@ -934,7 +935,7 @@ C
              PENE_OLD(5,N)=PENE(I)
            END IF
            PENE_SHFT = MAX(ZERO,PENE(I)-PENE_OLD(5,N))
-       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene dst',PENE(I),PENE_OLD(5,N),PENE_SHFT
+c       if(itab(nsvg(i))==2420442.or.itab(ix1(i))==2420442.or.itab(ix2(i))==2420442.or.itab(ix3(i))==2420442.or.itab(ix4(i))==2420442) write(*,*) 'pene dst',PENE(I),PENE_OLD(5,N),PENE_SHFT
 C         if(itab(jg)== 29687 .OR. ITAB(IX1(I)) == 29687 .OR. ITAB(IX2(I)) == 29687
 C    . .OR. ITAB(IX4(I)) == 29687 .OR. ITAB(IX3(I)) == 29687)
 C    .    THEN
@@ -944,6 +945,13 @@ C         ENDIF
             NOLDX = PENE_OLD(6,N)
             NOLDY = PENE_OLD(7,N)
             NOLDZ = PENE_OLD(8,N)
+
+c            PENE_OLD(6,N) = N1(I)
+c            PENE_OLD(7,N) = N2(I)
+c            PENE_OLD(8,N) = N3(I)
+c           if(itab(nsvg(i))==2420011.and.itab(ix1(i))==2120203.and.itab(ix2(i))==2419919.and.itab(ix3(i))==2419920.and.itab(ix4(i))==2419920) THEN
+c       write(*,*) 'slide normal avant',NCYCLE,NOLDX,NOLDY,NOLDZ,PENE_OLD(6,N),PENE_OLD(7,N),PENE_OLD(8,N)
+c           endif
           ELSE
            JG = -JG
            IF(IRTLM_FI(NIN)%P(1,JG) < 0)THEN ! new impact
@@ -955,17 +963,45 @@ C    ..OR.  ITAB(IX4(I)) == 29687 .OR. ITAB(IX3(I)) == 29687) THEN
 C              print *,ITAB(IX1(I)),ITAB(IX2(I)),ITAB(IX3(I)),ITAB(IX4(I)),
 C    . ITAB(JG),PENE_OLDFI(NIN)%P(5,JG),pene_shft
 C         endif
-            NOLDX = PENE_OLDFI(NIN)%P(6,N)
-            NOLDY = PENE_OLDFI(NIN)%P(7,N)
-            NOLDZ = PENE_OLDFI(NIN)%P(8,N)
+            NOLDX = PENE_OLDFI(NIN)%P(6,JG)
+            NOLDY = PENE_OLDFI(NIN)%P(7,JG)
+            NOLDZ = PENE_OLDFI(NIN)%P(8,JG)
+
+c            PENE_OLDFI(NIN)%P(6,JG) = N1(I)
+c            PENE_OLDFI(NIN)%P(6,JG) = N2(I)
+c            PENE_OLDFI(NIN)%P(8,JG) = N3(I)
          ENDIF
          PENE(I) = PENE_SHFT
 C
-         IF(KSLIDE(I,1)==1.OR.KSLIDE(I,2)==1.OR.KSLIDE(I,3)==1.OR.KSLIDE(I,4)==1) THEN
+         
+c         IF(KSLIDE(I,1)==1.OR.KSLIDE(I,2)==1.OR.KSLIDE(I,3)==1.OR.KSLIDE(I,4)==1) THEN
+c           JG = NSVG(I)
+c           N  = CAND_N(I)
+c           IF(JG > 0)THEN
+c              PENE_OLD(6,N) = N1(I)
+c              PENE_OLD(7,N) = N2(I)
+c              PENE_OLD(8,N) = N3(I)
+c           ELSE
+c             PENE_OLDFI(NIN)%P(6,JG) = N1(I)
+c             PENE_OLDFI(NIN)%P(6,JG) = N2(I)
+c             PENE_OLDFI(NIN)%P(8,JG) = N3(I)
+c           ENDIF
+
+c         ENDIF
+
+
            NNI = NOLDX*N1(I) + NOLDY*N2(I) + NOLDZ*N3(I) 
            NI2  = N1(I)*N1(I) + N2(I)*N2(I) + N3(I)*N3(I)
+      if(itab(nsvg(i))==2420443.or.itab(ix1(i))==2420443.or.itab(ix2(i))==2420443.or.itab(ix3(i))==2420443.or.itab(ix4(i))==2420443) THEN
+          write(*,*) 'slide yes or no',NCYCLE,KSLIDE(I,1),KSLIDE(I,2),KSLIDE(I,3),KSLIDE(I,4),NOLDX,NOLDY,NOLDZ,N1(I),N2(I),N3(I),NNI,NI2
+      endif
+
            IF(TWO*NNI*NNI < NI2)THEN
 c             scharp angle bound nodal normal to 45 from segment normal
+      if(itab(nsvg(i))==2420443.or.itab(ix1(i))==2420443.or.itab(ix2(i))==2420443.or.itab(ix3(i))==2420443.or.itab(ix4(i))==2420443) THEN
+           write(*,*) 'slide avant',NCYCLE,ITAB(IX1(I)),ITAB(IX2(I)),ITAB(IX3(I)),ITAB(IX4(I)),
+     . ITAB(JG),KSLIDE(I,1:4) ,NOLDX,NOLDY,NOLDZ,N1(I),N2(I),N3(I),NNI,NI2
+       endif
               AAA = SQRT(NI2-NNI*NNI) - NNI
               N1(I) = N1(I) + AAA*NOLDX
               N2(I) = N2(I) + AAA*NOLDY
@@ -975,9 +1011,15 @@ c             scharp angle bound nodal normal to 45 from segment normal
               N1(I) = N1(I)*S2
               N2(I) = N2(I)*S2
               N3(I) = N3(I)*S2
+      if(itab(nsvg(i))==2420443.or.itab(ix1(i))==2420443.or.itab(ix2(i))==2420443.or.itab(ix3(i))==2420443.or.itab(ix4(i))==2420443) THEN
+           write(*,*) 'slide apres',NCYCLE,ITAB(IX1(I)),ITAB(IX2(I)),ITAB(IX3(I)),ITAB(IX4(I)),
+     . ITAB(JG),N1(I),N2(I),N3(I)
+      endif
            ENDIF
-         ENDIF
+c         ENDIF
 C
+
+
 
         ENDDO
 C       END IF !IF (INACTI==5)
