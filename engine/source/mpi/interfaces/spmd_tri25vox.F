@@ -314,7 +314,7 @@ C-----for   NBINFLG
 
 c INT25     
       IF(ITYP==25)THEN
-        RSIZ = RSIZ + 3
+        RSIZ = RSIZ + 6
         ISIZ = ISIZ + 6
 C-----for   NBINFLG      
         IF (ILEV==2) ISIZ = ISIZ + 1

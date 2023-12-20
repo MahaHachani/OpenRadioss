@@ -1302,7 +1302,7 @@ C
                 END IF
                 LR = LR + RSIZ
               END DO
-              RSHIFT = RSHIFT + 10
+              RSHIFT = RSHIFT + 13
 
               LI = 0
 #include      "vectorize.inc"

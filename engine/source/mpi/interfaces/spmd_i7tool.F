@@ -5729,16 +5729,17 @@ C
               END IF
               IF (ITYP==24.OR.ITYP==25)THEN
                 CALL WRITE_DB(SECND_FRFI(I)%P(1,1),6*LENR)
+                IF (ITYP==24)THEN
+                  CALL WRITE_DB(PENE_OLDFI(I)%P(1,1),5*LENR)
+                ENDIF
+                IF (ITYP==25)THEN
+                  CALL WRITE_DB(PENE_OLDFI(I)%P(1,1),8*LENR)
+                ENDIF  
                 CALL WRITE_DB(STIF_OLDFI(I)%P(1,1),2*LENR)
                 IF(IPARI(97,I) > 0) CALL WRITE_DB(STIF_MSDT_FI(I)%P(1),LENR) ! stif based on mass and dt
                 IF(PARAMETERS%INTCAREA > 0.AND.IPARI(36,I)>0) CALL WRITE_DB(INTAREANFI(I)%P(1),LENR) ! output carea th (only case NISUB)
               ENDIF  ! fin partie type 24 & 25
-              IF (ITYP==24)THEN
-                CALL WRITE_DB(PENE_OLDFI(I)%P(1,1),5*LENR)
-              ENDIF
-              IF (ITYP==25)THEN
-                CALL WRITE_DB(PENE_OLDFI(I)%P(1,1),8*LENR)
-              ENDIF
+
 C             
               IF (ITYP==24) THEN
                 IF(IDTMINS==2)THEN
