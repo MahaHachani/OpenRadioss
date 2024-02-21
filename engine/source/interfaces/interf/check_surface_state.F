@@ -160,6 +160,9 @@ C-----------------------------------------------
 
             IF(ITASK==-1.AND.ITY==25.AND.IPARI(100,NIN) > 0) THEN
                 IF(INTBUF_TAB(NIN)%STFM(K) < 0 ) THEN ! if local element is already OFF INTBUF_TAB(NIN)%STFM(K) = 0
+              IF(INTBUF_TAB(NIN)%MSEGLO(K)==15759) then
+          write(*,*) 'surf 15759 elem',ISPMD,K,INTBUF_TAB(NIN)%STFM(K),INTBUF_TAB(NIN)%IELEM_M(2*(K-1)+1),IXS(NIXS,INTBUF_TAB(NIN)%IELEM_M(2*(K-1)+1))
+              ENDIF
                     INTBUF_TAB(NIN)%STFM(K) = - INTBUF_TAB(NIN)%STFM(K) 
                     NB_RESULT_INTERSECT_25 = NB_RESULT_INTERSECT_25 + 1 ! Other element is ON : Internal segment becoming external
                     RESULT_INTERSECT_25(NB_RESULT_INTERSECT_25) = SURFACE_ID(I)

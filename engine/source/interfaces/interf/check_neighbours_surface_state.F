@@ -236,8 +236,19 @@ C---------------------------------------------------------
 
         ALLOCATE( S_BUFFER(NSPMD), R_BUFFER(NSPMD) )
         S_BUFFER(1:NSPMD)%SIZE_INT_ARRAY_2D(1) = 2
+        S_BUFFER(1:NSPMD)%SIZE_REAL_ARRAY_2D(1) = 2
         DO I=1,NSPMD
-            S_BUFFER(I)%SIZE_INT_ARRAY_2D(2) = 4*SHOOT_STRUCT%MAX_SURF_NB*(IAD_ELEM(1,I+1)-IAD_ELEM(1,I))
+            S_BUFFER(I)%SIZE_INT_ARRAY_2D(2) = 5*SHOOT_STRUCT%MAX_SURF_NB*(IAD_ELEM(1,I+1)-IAD_ELEM(1,I))
+            S_BUFFER(I)%SIZE_REAL_ARRAY_2D(2)= 3*SHOOT_STRUCT%MAX_SURF_NB*(IAD_ELEM(1,I+1)-IAD_ELEM(1,I))
+        ENDDO
+        NUMBER_REMOTE_SURF(1:NSPMD) = 0
+
+        ALLOCATE( S_BUFFER2(NSPMD), R_BUFFER2(NSPMD) )
+        S_BUFFER2(1:NSPMD)%SIZE_INT_ARRAY_2D(1) = 2
+        S_BUFFER2(1:NSPMD)%SIZE_REAL_ARRAY_2D(1) = 2
+        DO I=1,NSPMD
+            S_BUFFER2(I)%SIZE_INT_ARRAY_2D(2) = 5*SHOOT_STRUCT%MAX_SURF_NB*(IAD_ELEM(1,I+1)-IAD_ELEM(1,I))
+            S_BUFFER2(I)%SIZE_REAL_ARRAY_2D(2)= 3*SHOOT_STRUCT%MAX_SURF_NB*(IAD_ELEM(1,I+1)-IAD_ELEM(1,I))
         ENDDO
         NUMBER_REMOTE_SURF(1:NSPMD) = 0
 
@@ -264,6 +275,7 @@ C---------------------------------------------------------
                ITAGM(1:NRTM) = 0
                IDX(1:NRTM) = 0
                DO I=1,NRTM
+
                   IF(INTBUF_TAB(NIN)%IELEM_M(2*(I-1)+1) <= NUMELS.AND.INTBUF_TAB(NIN)%STFM(I) > ZERO) THEN
                     DO J=1,4
                         IF (INTBUF_TAB(NIN)%MVOISIN(4*(I-1)+J)==0) THEN
@@ -274,7 +286,7 @@ C---------------------------------------------------------
                                 N1 = INTBUF_TAB(NIN)%IRECTM(4*(I-1)+J)
                                 N2 = INTBUF_TAB(NIN)%IRECTM(4*(I-1)+MOD(J,4)+1) 
 C
-                                IEL = INTBUF_TAB(NIN)%IELEM_M(2*(I-1)+1)
+                                IEL = INTBUF_TAB(NIN)%IELEM_M(2*(I-1)+2)
                                 IOK = 0
                                 ISEARCH = 0
                                 DO WHILE(IOK == 0.AND.IEL > 0)
@@ -292,7 +304,6 @@ C
                                        ENDDO
                                        IF(ITAG(N1)==1.AND.ITAG(N2)==1) THEN
                                          IF(INTBUF_TAB(NIN)%STFM(ISURF) > 0) THEN
-                                           IOK =1
                                            DO ID=1,4
                                              IF(.NOT.(INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+4)==
      .                                           INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+3).AND.ID==3))THEN
@@ -303,6 +314,7 @@ C
                                                 ENDIF  
                                               ENDIF 
                                            ENDDO
+                                           IF(INTBUF_TAB(NIN)%MVOISIN(4*(ISURF-1)+IEDG)==0) IOK =1
                                          ELSE
                                             IEL1 = INTBUF_TAB(NIN)%IELEM_M(2*(ISURF-1)+1)
                                             IEL2 = INTBUF_TAB(NIN)%IELEM_M(2*(ISURF-1)+2)
@@ -329,6 +341,7 @@ C
                                     ITAGM(IDX(ID))  = 0
                                 ENDDO
                                 IF(IOK==0.AND.IEL > 0) write(*,*) 'problem finding mvoisin'
+
                                 IF(IOK > 0) THEN
                                    INTBUF_TAB(NIN)%MVOISIN(4*(I-1)+J) = ISURF
                                    INTBUF_TAB(NIN)%MVOISIN(4*(ISURF-1)+IEDG) = I
@@ -337,6 +350,10 @@ C
                                    INTBUF_TAB(NIN)%PROC_MVOISIN(4*(I-1)+J) = ISPMD +1     
                                    INTBUF_TAB(NIN)%PROC_MVOISIN(4*(ISURF-1)+IEDG) = ISPMD +1     
                                 ELSEIF(IEL <0) THEN ! Voisin remote : comm spmd  => Not possible 
+
+C-----------------------------------------------------------
+C    SPMD : if neighbour is remote send segment to other procs sharing the edge 
+C---------------------------------------------------------
 
 
                                     NB_PROC1 = SHOOT_STRUCT%SHIFT_M_NODE_PROC(N1+1) - SHOOT_STRUCT%SHIFT_M_NODE_PROC(N1)
@@ -363,6 +380,38 @@ C
 
                                         ALREADY_DONE(1:NSPMD) = .FALSE.
                                         ALREADY_DONE(ISPMD+1) = .TRUE.
+
+       ! Normal to the segment : need to send the normal of the segment to choose the neighbhoor that have the minimum angle
+            XS1=ZERO 
+            YS1=ZERO 
+            ZS1=ZERO
+            DO  JJ=1,4
+               NN=INTBUF_TAB(NIN)%IRECTM(4*(I-1)+JJ)
+               IY(JJ)=NN
+               XX1(JJ)=X(1,NN)
+               XX2(JJ)=X(2,NN)
+               XX3(JJ)=X(3,NN)
+               XS1=XS1+FOURTH*X(1,NN)
+               YS1=YS1+FOURTH*X(2,NN)
+               ZS1=ZS1+FOURTH*X(3,NN)   
+            ENDDO    
+C
+            XX13 =XX1(3)-XX1(1)
+            YY13 =XX2(3)-XX2(1)
+            ZZ13 =XX3(3)-XX3(1)
+            XX24 =XX1(4)-XX1(2)
+            YY24 =XX2(4)-XX2(2)
+            ZZ24 =XX3(4)-XX3(2)
+C
+            NOR1=YY13*ZZ24-ZZ13*YY24
+            NOR2=ZZ13*XX24-XX13*ZZ24
+            NOR3=XX13*YY24-YY13*XX24
+            AREA= MAX(EM20,SQRT(NOR1*NOR1+NOR2*NOR2+NOR3*NOR3))
+            NOR1=NOR1/AREA
+            NOR2=NOR2/AREA
+            NOR3=NOR3/AREA
+
+
                                         IF(NB_RESULT_INTERSECT_2>1) THEN
 c                                            SHIFT = SHOOT_STRUCT%SHIFT_M_NODE_PROC(N1)
                                             DO IJK=1,NB_RESULT_INTERSECT_2
@@ -375,13 +424,20 @@ c                                            SHIFT = SHOOT_STRUCT%SHIFT_M_NODE_P
                                                     NUMBER_REMOTE_SURF(REMOTE_PROC) = NUMBER_REMOTE_SURF(REMOTE_PROC) + 1
                                                     ADRESS_PROC = 4*(NUMBER_REMOTE_SURF(REMOTE_PROC)-1) +1
                                                     S_BUFFER(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC) = -INTBUF_TAB(NIN)%MSEGLO(I)
-                                                    S_BUFFER(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+1) = ITAB(N1) 
-                                                    S_BUFFER(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+2) = ITAB(N2)   
-                                                    S_BUFFER(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+3) = J  
+                                                    S_BUFFER(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+1) = I
+                                                    S_BUFFER(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+2) = ITAB(N1) 
+                                                    S_BUFFER(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+3) = ITAB(N2)  
+                                                    S_BUFFER(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+4) = J  
                                                     S_BUFFER(REMOTE_PROC)%INT_ARRAY_2D(2,ADRESS_PROC) = NIN
+                                                    ADRESS_PROC = 3*(NUMBER_REMOTE_SURF(REMOTE_PROC)-1) +1
+                                                    S_BUFFER(REMOTE_PROC)%REAL_ARRAY_2D(1,ADRESS_PROC)   = NOR1
+                                                    S_BUFFER(REMOTE_PROC)%REAL_ARRAY_2D(1,ADRESS_PROC+1) = NOR2
+                                                    S_BUFFER(REMOTE_PROC)%REAL_ARRAY_2D(1,ADRESS_PROC+2) = NOR3 
+                                                    S_BUFFER(REMOTE_PROC)%REAL_ARRAY_2D(2,ADRESS_PROC) = NIN
                                                 ENDIF
                                                 
                                             ENDDO
+F
                                         ENDIF
                                     ENDIF
                                 ENDIF
@@ -407,7 +463,7 @@ c
 #ifdef MPI
 
         ! ----------------
-        ! receive the data : "number of deleted surface of interface type 24 or 25"
+        ! receive the data : "number of surfaces of interface type 25 needing to update Mvoisin"
            RECV_NB = 0        
            DO I=1,NSPMD
               FRONTIER_ELM = IAD_ELEM(1,I+1)-IAD_ELEM(1,I)
@@ -422,7 +478,7 @@ c
         ! ----------------
 
         ! ----------------
-        ! send the data : "number of deleted surface of interface type 24 or 25"
+        ! send the data : "number of surfaces of interface type 25 needing to update Mvoisin"
            DO I=1,NSPMD
               FRONTIER_ELM = IAD_ELEM(1,I+1)-IAD_ELEM(1,I)
               IF(FRONTIER_ELM>0) THEN
@@ -434,11 +490,11 @@ c
         ! ----------------
 
         ! ----------------
-        ! wait the R comm "number of deleted surface of interface type 24 or 25"
+        ! wait the R comm "number of surfaces of interface type 25 needing to update Mvoisin"
           IF(RECV_NB>0) CALL MPI_WAITALL(RECV_NB,REQUEST_SIZE_R,ARRAY_STATUSES,IERROR)
 
         ! ----------------
-        ! receive the data : "list of deleted surface of interface type 24 or 25"
+        ! receive the data : "list of surfaces of interface type 25 needing to update Mvoisin"
           RECV_NB_2 = 0
           DO I=1,RECV_NB
              PROC_ID = INDEX_R_PROC(I)
@@ -446,7 +502,7 @@ c
                 RECV_NB_2 = RECV_NB_2 + 1
                 INDEX_R_PROC_2(RECV_NB_2) = PROC_ID
                 R_BUFFER(PROC_ID)%SIZE_INT_ARRAY_2D(1) = 2
-                R_BUFFER(PROC_ID)%SIZE_INT_ARRAY_2D(2) = 4*NUMBER_REMOTE_SURF_R(PROC_ID)
+                R_BUFFER(PROC_ID)%SIZE_INT_ARRAY_2D(2) = 5*NUMBER_REMOTE_SURF_R(PROC_ID)
                 CALL ALLOC_2D_ARRAY(R_BUFFER(PROC_ID)) 
                 SIZE_R = R_BUFFER(PROC_ID)%SIZE_INT_ARRAY_2D(1) * R_BUFFER(PROC_ID)%SIZE_INT_ARRAY_2D(2)
                 MSGTYP = MSGOFF2
@@ -458,7 +514,7 @@ c
           ENDDO
 
         ! ----------------
-        ! send the data : "list of deleted surface of interface type 24 or 25"
+        ! send the data : "list of surfaces of interface type 25 needing to update Mvoisin"
           DO I=1,NSPMD
             IF(NUMBER_REMOTE_SURF(I)>0) THEN
                 MSGTYP = MSGOFF2
@@ -468,24 +524,67 @@ c
 
             ENDIF
           ENDDO
+
+        ! ----------------
+
+        ! ----------------
+        ! receive the data : "list of surfaces of interface type 25 needing to update Mvoisin"
+          RECV_NB_2 = 0
+          DO I=1,RECV_NB
+             PROC_ID = INDEX_R_PROC(I)
+             IF(NUMBER_REMOTE_SURF_R(PROC_ID)>0) THEN
+                RECV_NB_2 = RECV_NB_2 + 1
+                INDEX_R_PROC_2(RECV_NB_2) = PROC_ID
+                R_BUFFER(PROC_ID)%SIZE_REAL_ARRAY_2D(1) = 2
+                R_BUFFER(PROC_ID)%SIZE_REAL_ARRAY_2D(2) = 3*NUMBER_REMOTE_SURF_R(PROC_ID)
+
+                SIZE_R = R_BUFFER(PROC_ID)%SIZE_REAL_ARRAY_2D(1) * R_BUFFER(PROC_ID)%SIZE_REAL_ARRAY_2D(2)
+                MSGTYP = MSGOFF2
+                CALL MPI_IRECV(R_BUFFER(PROC_ID)%REAL_ARRAY_2D(1,1),SIZE_R,
+     .                  MPI_INTEGER,IT_SPMD(PROC_ID),MSGTYP,
+     .                  MPI_COMM_WORLD,REQUEST_SIZE_R_3(RECV_NB_2),IERROR )
+             ENDIF
+
+          ENDDO
+
+        ! ----------------
+        ! send the data : "list of surfaces of interface type 25 needing to update Mvoisin"
+          DO I=1,NSPMD
+            IF(NUMBER_REMOTE_SURF(I)>0) THEN
+                MSGTYP = MSGOFF2
+                SIZE_S = 3*NUMBER_REMOTE_SURF(I) * S_BUFFER(I)%SIZE_REAL_ARRAY_2D(1)
+                CALL MPI_ISEND( S_BUFFER(I)%REAL_ARRAY_2D(1,1),SIZE_S,MPI_REAL,IT_SPMD(I),MSGTYP,
+     .                          MPI_COMM_WORLD,REQUEST_SIZE_S_3(I),IERROR )0
+
+            ENDIF
+          ENDDO
+
+
         ! ----------------
 
         ! ----------------
           DO I=1,RECV_NB_2
             
             CALL MPI_WAITANY(RECV_NB_2,REQUEST_SIZE_R_2,K,STATUS_MPI,IERROR)
+            CALL MPI_WAITANY(RECV_NB_2,REQUEST_SIZE_R_3,K,STATUS_MPI,IERROR)
             PROC_ID = INDEX_R_PROC_2(K)
             ! --------------
             DO J=1,NUMBER_REMOTE_SURF_R(PROC_ID)
-                NIN = R_BUFFER(PROC_ID)%INT_ARRAY_2D(2,4*(J-1)+1) ! get the interface id
+                NIN = R_BUFFER(PROC_ID)%INT_ARRAY_2D(2,5*(J-1)+1) ! get the interface id
                 ITY = IPARI(7,NIN)  ! get the type of interface
                 IDEL = IPARI(17,NIN) ! get the kind of idel (1 or 2)
                 NRTM = IPARI(4,NIN)     ! get the number of surfaces of the interface NIN
                 ! --------------
-                GLOCAL_SURFACE_ID = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,4*(J-1)+1) ! get the global deleted surface id
-                EDGE_N1 = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,4*(J-1)+2) ! get the global node of common edge surface id
-                EDGE_N2 = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,4*(J-1)+3) ! get the global node of common edge surface id
-                INEDG = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,4*(J-1)+4) ! get the edge id of the surface
+                GLOCAL_SURFACE_ID = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+1) ! get the global deleted surface id
+                EDGE_N1 = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+3) ! get the global node of common edge surface id
+                EDGE_N2 = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+4) ! get the global node of common edge surface id
+                INEDG = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+5) ! get the edge id of the surface
+
+
+                NOR1 = R_BUFFER(PROC_ID)%REAL_ARRAY_2D(1,3*(J-1)+1) ! get the global node of common edge surface id
+                NOR2 = R_BUFFER(PROC_ID)%REAL_ARRAY_2D(1,3*(J-1)+2) ! get the global node of common edge surface id
+                NOR3 = R_BUFFER(PROC_ID)%REAL_ARRAY_2D(1,3*(J-1)+3) ! get the global node of common edge surface id
+
                 
                 N1 = SYSFUS2(EDGE_N1,ITABM1,NUMNOD)
                 N2 = SYSFUS2(EDGE_N2,ITABM1,NUMNOD)
@@ -499,6 +598,7 @@ c
                 INTERSECT_2(1:NB_SURF2) = SHOOT_STRUCT%M_NODE_SURF( SHIFT+1:SHIFT+NB_SURF2 )
 
 
+
                 IF(NB_SURF1>0.AND. NB_SURF2>0) THEN
                    CALL INTERSECT_2_SORTED_SETS( INTERSECT_1,NB_SURF1,
      .                                           INTERSECT_2,NB_SURF2,
@@ -507,6 +607,8 @@ c
                    NB_RESULT_INTERSECT = 0
                 ENDIF
 
+
+                ANGLE = 0.0
                 DO K=1,NB_RESULT_INTERSECT
                     ISURF = RESULT_INTERSECT(K)
                     ID_INTER = DICHOTOMIC_SEARCH_I_ASC(ISURF, SHIFT_INTERFACE(1,1), NUMBER_INTER+1) ! find the interface of the surface
@@ -515,6 +617,37 @@ c
 
                     IF(NIN==N) THEN
                       IF(INTBUF_TAB(NIN)%STFM(ISURF) > ZERO ) THEN ! neighboor external surfaces
+
+       ! Normal to the segment
+            XS1=ZERO 
+            YS1=ZERO 
+            ZS1=ZERO
+            DO  JJ=1,4
+               NN=INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+JJ)
+               IY(JJ)=NN
+               XX1(JJ)=X(1,NN)
+               XX2(JJ)=X(2,NN)
+               XX3(JJ)=X(3,NN)
+               XS1=XS1+FOURTH*X(1,NN)
+               YS1=YS1+FOURTH*X(2,NN)
+               ZS1=ZS1+FOURTH*X(3,NN)   
+            ENDDO    
+C
+            XX13 =XX1(3)-XX1(1)
+            YY13 =XX2(3)-XX2(1)
+            ZZ13 =XX3(3)-XX3(1)
+            XX24 =XX1(4)-XX1(2)
+            YY24 =XX2(4)-XX2(2)
+            ZZ24 =XX3(4)-XX3(2)
+C
+            NORS1=YY13*ZZ24-ZZ13*YY24
+            NORS2=ZZ13*XX24-XX13*ZZ24
+            NORS3=XX13*YY24-YY13*XX24
+            AREA= MAX(EM20,SQRT(NORS1*NORS1+NORS2*NORS2+NORS3*NORS3))
+            NORS1=NORS1/AREA
+            NORS2=NORS2/AREA
+            NORS3=NORS3/AREA
+
                         IEDG = 0
                         DO ID=1,4
                             IF(.NOT.(INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+3)==INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+4).AND.ID==3))THEN
@@ -522,16 +655,50 @@ c
                                 NN2= INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+MOD(ID,4)+1)
                                 IF((NN1==N1.AND.NN2==N2).OR.(NN1==N2.AND.NN2==N1)) THEN
                                    IEDG = ID
+                                   ANG = NOR1*NORS1+NOR2*NORS2+NOR3*NORS3
+                                   IF(ANG < ANGLE ) THEN
+                                     ISURF_MIN = ISURF 
+                                     IEDG_MIN = IEDG 
+                                     ANGLE = ANG                                   
+                                   ENDIF
                                 ENDIF  
                             ENDIF 
-                        ENDDO                                                                        
-                        INTBUF_TAB(NIN)%MVOISIN(4*(ISURF-1)+IEDG) = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,4*(J-1)+1)
-                        INTBUF_TAB(NIN)%EVOISIN(4*(ISURF-1)+IEDG) = INEDG
-                        INTBUF_TAB(NIN)%PROC_MVOISIN(4*(ISURF-1)+IEDG) = PROC_ID
+                        ENDDO
+
+                                                                        
+c                        INTBUF_TAB(NIN)%MVOISIN(4*(ISURF-1)+IEDG) = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,4*(J-1)+1)
+c                        INTBUF_TAB(NIN)%EVOISIN(4*(ISURF-1)+IEDG) = INEDG
+c                        INTBUF_TAB(NIN)%PROC_MVOISIN(4*(ISURF-1)+IEDG) = PROC_ID
                       ENDIF
                     ENDIF
                 ENDDO
-                
+
+C-----------------------------------------------------------
+C    SPMD : each proc search the neighbour having the minimun angle and send to the proc having the segment
+C---------------------------------------------------------
+
+                                                REMOTE_PROC = PROC_ID !SHOOT_STRUCT%M_NODE_PROC( SHIFT+IJK )
+                                                IF(.NOT.ALREADY_DONE(REMOTE_PROC) ) THEN
+                                                    ALREADY_DONE(REMOTE_PROC) = .TRUE.
+                                                    IF(.NOT.ALLOCATED( S_BUFFER2(REMOTE_PROC)%INT_ARRAY_2D ) ) THEN
+                                                        CALL ALLOC_2D_ARRAY(S_BUFFER2(REMOTE_PROC))
+                                                    ENDIF
+                                                    NUMBER_REMOTE_SURF2(REMOTE_PROC) = NUMBER_REMOTE_SURF2(REMOTE_PROC) + 1
+                                                    ADRESS_PROC = 2*(NUMBER_REMOTE_SURF(REMOTE_PROC)-1) +1
+                                                    S_BUFFER2(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC) = -INTBUF_TAB(NIN)%MSEGLO(ISURF_MIN)
+                                                    S_BUFFER2(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+1) = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+2)
+                                                    S_BUFFER2(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+2) = ITAB(N1) 
+                                                    S_BUFFER2(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+3) = ITAB(N2)  
+                                                    S_BUFFER2(REMOTE_PROC)%INT_ARRAY_2D(1,ADRESS_PROC+4) = IEDG_MIN  
+                                                    S_BUFFER2(REMOTE_PROC)%INT_ARRAY_2D(2,ADRESS_PROC) = NIN
+                                                    ADRESS_PROC = 3*(NUMBER_REMOTE_SURF(REMOTE_PROC)-1) +1
+                                                    S_BUFFER2(REMOTE_PROC)%REAL_ARRAY_2D(1,ADRESS_PROC)   = ANGLE
+                                                    S_BUFFER2(REMOTE_PROC)%REAL_ARRAY_2D(1,ADRESS_PROC+1)   = NOR1
+                                                    S_BUFFER2(REMOTE_PROC)%REAL_ARRAY_2D(1,ADRESS_PROC+2)   = NOR2
+                                                    S_BUFFER2(REMOTE_PROC)%REAL_ARRAY_2D(1,ADRESS_PROC+3)   = NOR3
+                                                    S_BUFFER2(REMOTE_PROC)%REAL_ARRAY_2D(2,ADRESS_PROC) = NIN
+                                                ENDIF  
+              
                 ! --------------
             ENDDO
             CALL DEALLOC_2D_ARRAY(R_BUFFER(PROC_ID)) 
@@ -558,6 +725,329 @@ c
             ENDIF
           ENDDO
         ! ----------------
+
+        ! ----------------
+        ! wait the S comm : "list of deleted surface of interface type 24 or 25"
+          DO I=1,NSPMD
+            IF(NUMBER_REMOTE_SURF(I)>0) THEN
+                CALL MPI_WAIT(REQUEST_SIZE_S_3(I),STATUS_MPI,IERROR)
+                CALL DEALLOC_2D_ARRAY(S_BUFFER(I)) 
+            ENDIF
+          ENDDO
+        ! ----------------
+
+
+
+
+
+
+
+        ! ----------------
+        ! receive the data : "list of surfaces of interface type 25 needing to update Mvoisin"
+          RECV_NB_2 = 0
+          DO I=1,RECV_NB
+             PROC_ID = INDEX_R_PROC(I)
+             IF(NUMBER_REMOTE_SURF_R(PROC_ID)>0) THEN
+                RECV_NB_2 = RECV_NB_2 + 1
+                INDEX_R_PROC_2(RECV_NB_2) = PROC_ID
+                R_BUFFER2(PROC_ID)%SIZE_INT_ARRAY_2D(1) = 2
+                R_BUFFER2(PROC_ID)%SIZE_INT_ARRAY_2D(2) = 5*NUMBER_REMOTE_SURF_R(PROC_ID)
+                CALL ALLOC_2D_ARRAY(R_BUFFER2(PROC_ID)) 
+                SIZE_R = R_BUFFER2(PROC_ID)%SIZE_INT_ARRAY_2D(1) * R_BUFFER(PROC_ID)%SIZE_INT_ARRAY_2D(2)
+                MSGTYP = MSGOFF2
+                CALL MPI_IRECV(R_BUFFER2(PROC_ID)%INT_ARRAY_2D(1,1),SIZE_R,
+     .                  MPI_INTEGER,IT_SPMD(PROC_ID),MSGTYP,
+     .                  MPI_COMM_WORLD,REQUEST_SIZE_R_2(RECV_NB_2),IERROR )
+             ENDIF
+
+          ENDDO
+
+        ! ----------------
+        ! send the data : "list of surfaces of interface type 25 needing to update Mvoisin"
+          DO I=1,NSPMD
+            IF(NUMBER_REMOTE_SURF(I)>0) THEN
+                MSGTYP = MSGOFF2
+                SIZE_S = 5*NUMBER_REMOTE_SURF(I) * S_BUFFER2(I)%SIZE_INT_ARRAY_2D(1)
+                CALL MPI_ISEND( S_BUFFER2(I)%INT_ARRAY_2D(1,1),SIZE_S,MPI_INTEGER,IT_SPMD(I),MSGTYP,
+     .                          MPI_COMM_WORLD,REQUEST_SIZE_S_2(I),IERROR )
+
+            ENDIF
+          ENDDO
+
+        ! ----------------
+
+        ! ----------------
+        ! receive the data : "list of surfaces of interface type 25 needing to update Mvoisin"
+          RECV_NB_2 = 0
+          RECV_NB_TOT = 0
+          DO I=1,RECV_NB
+             PROC_ID = INDEX_R_PROC(I)
+             IF(NUMBER_REMOTE_SURF_R(PROC_ID)>0) THEN
+                RECV_NB_2 = RECV_NB_2 + 1
+                INDEX_R_PROC_2(RECV_NB_2) = PROC_ID
+                R_BUFFER2(PROC_ID)%SIZE_REAL_ARRAY_2D(1) = 2
+                R_BUFFER2(PROC_ID)%SIZE_REAL_ARRAY_2D(2) = NUMBER_REMOTE_SURF_R(PROC_ID)
+
+                RECV_NB_TOT = RECV_NB_TOT + NUMBER_REMOTE_SURF_R(PROC_ID)
+
+                SIZE_R = R_BUFFER2(PROC_ID)%SIZE_REAL_ARRAY_2D(1) * R_BUFFER2(PROC_ID)%SIZE_REAL_ARRAY_2D(2)
+                MSGTYP = MSGOFF2
+                CALL MPI_IRECV(R_BUFFER2(PROC_ID)%REAL_ARRAY_2D(1,1),SIZE_R,
+     .                  MPI_INTEGER,IT_SPMD(PROC_ID),MSGTYP,
+     .                  MPI_COMM_WORLD,REQUEST_SIZE_R_3(RECV_NB_2),IERROR )
+             ENDIF
+
+          ENDDO
+
+        ! ----------------
+        ! send the data : "list of surfaces of interface type 25 needing to update Mvoisin"
+          DO I=1,NSPMD
+            IF(NUMBER_REMOTE_SURF(I)>0) THEN
+                MSGTYP = MSGOFF2
+                SIZE_S = NUMBER_REMOTE_SURF(I) * S_BUFFER2(I)%SIZE_REAL_ARRAY_2D(1)
+                CALL MPI_ISEND( S_BUFFER2(I)%REAL_ARRAY_2D(1,1),SIZE_S,MPI_REAL,IT_SPMD(I),MSGTYP,
+     .                          MPI_COMM_WORLD,REQUEST_SIZE_S_3(I),IERROR )
+
+            ENDIF
+          ENDDO
+
+          ALLOCATE(ANGLE_NRTM(RECV_NB_TOT))
+          ALLOCATE(EDG_NRTM(RECV_NB_TOT))
+
+          DO I=1,RECV_NB_2
+            
+            CALL MPI_WAITANY(RECV_NB_2,REQUEST_SIZE_R_2,K,STATUS_MPI,IERROR)
+            CALL MPI_WAITANY(RECV_NB_2,REQUEST_SIZE_R_3,K,STATUS_MPI,IERROR)
+            PROC_ID = INDEX_R_PROC_2(K)
+            ! --------------
+            DO J=1,NUMBER_REMOTE_SURF_R(PROC_ID)
+                NIN = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(2,4*(J-1)+1) ! get the interface id
+                ITY = IPARI(7,NIN)  ! get the type of interface
+                IDEL = IPARI(17,NIN) ! get the kind of idel (1 or 2)
+                NRTM = IPARI(4,NIN)     ! get the number of surfaces of the interface NIN
+                ! --------------
+
+                ISURF = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+2) 
+                EDGE_N1 = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+3) ! get the global node of common edge surface id
+                EDGE_N2 = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+4) ! get the global node of common edge surface id
+
+
+                NOR1 = R_BUFFER2(PROC_ID)%REAL_ARRAY_2D(1,4*(J-1)+2) ! get the global node of common edge surface id
+                NOR2 = R_BUFFER2(PROC_ID)%REAL_ARRAY_2D(1,4*(J-1)+3) ! get the global node of common edge surface id
+                NOR3 = R_BUFFER2(PROC_ID)%REAL_ARRAY_2D(1,4*(J-1)+4) ! get the global node of common edge surface id
+
+
+                NB_SURF1 = SHOOT_STRUCT%SHIFT_M_NODE_SURF(N1+1) - SHOOT_STRUCT%SHIFT_M_NODE_SURF(N1)   ! get the number of surface of the node
+                SHIFT = SHOOT_STRUCT%SHIFT_M_NODE_SURF(N1)
+                INTERSECT_1(1:NB_SURF1) = SHOOT_STRUCT%M_NODE_SURF( SHIFT+1:SHIFT+NB_SURF1 )
+
+                NB_SURF2 = SHOOT_STRUCT%SHIFT_M_NODE_SURF(N2+1) - SHOOT_STRUCT%SHIFT_M_NODE_SURF(N2)   ! get the number of surface of the node
+                SHIFT = SHOOT_STRUCT%SHIFT_M_NODE_SURF(N2)
+                INTERSECT_2(1:NB_SURF2) = SHOOT_STRUCT%M_NODE_SURF( SHIFT+1:SHIFT+NB_SURF2 )
+
+
+
+                IF(NB_SURF1>0.AND. NB_SURF2>0) THEN
+                   CALL INTERSECT_2_SORTED_SETS( INTERSECT_1,NB_SURF1,
+     .                                           INTERSECT_2,NB_SURF2,
+     .                                           RESULT_INTERSECT,NB_RESULT_INTERSECT )
+                ELSE
+                   NB_RESULT_INTERSECT = 0
+                ENDIF
+
+
+
+                ANGLE_LOCAL = 0.0
+                DO K=1,NB_RESULT_INTERSECT
+                    ISURF = RESULT_INTERSECT(K)
+                    ID_INTER = DICHOTOMIC_SEARCH_I_ASC(ISURF, SHIFT_INTERFACE(1,1), NUMBER_INTER+1) ! find the interface of the surface
+                    N = SHIFT_INTERFACE(ID_INTER,2)
+                    ISURF = ISURF - SHIFT_INTERFACE(ID_INTER,1) + 1 ! get the surface id in the NIN interface
+
+
+
+       ! Normal to the segment
+            XS1=ZERO 
+            YS1=ZERO 
+            ZS1=ZERO
+            DO  JJ=1,4
+               NN=INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+JJ)
+               IY(JJ)=NN
+               XX1(JJ)=X(1,NN)
+               XX2(JJ)=X(2,NN)
+               XX3(JJ)=X(3,NN)
+               XS1=XS1+FOURTH*X(1,NN)
+               YS1=YS1+FOURTH*X(2,NN)
+               ZS1=ZS1+FOURTH*X(3,NN)   
+            ENDDO    
+C
+            XX13 =XX1(3)-XX1(1)
+            YY13 =XX2(3)-XX2(1)
+            ZZ13 =XX3(3)-XX3(1)
+            XX24 =XX1(4)-XX1(2)
+            YY24 =XX2(4)-XX2(2)
+            ZZ24 =XX3(4)-XX3(2)
+C
+            NORS1=YY13*ZZ24-ZZ13*YY24
+            NORS2=ZZ13*XX24-XX13*ZZ24
+            NORS3=XX13*YY24-YY13*XX24
+            AREA= MAX(EM20,SQRT(NORS1*NORS1+NORS2*NORS2+NORS3*NORS3))
+            NOR1=NOR1/AREA
+            NOR2=NOR2/AREA
+            NOR3=NOR3/AREA
+
+                        IEDG = 0
+                        DO ID=1,4
+                            IF(.NOT.(INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+3)==INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+4).AND.ID==3))THEN
+                                NN1= INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+ID)
+                                NN2= INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+MOD(ID,4)+1)
+                                IF((NN1==N1.AND.NN2==N2).OR.(NN1==N2.AND.NN2==N1)) THEN
+                                   IEDG = ID
+                                   ANG = NOR1*NORS1+NOR2*NORS2+NOR3*NORS3
+                                   IF(ANG < ANGLE_LOCAL ) THEN
+                                     ISURF_MIN = ISURF 
+                                     IEDG_MIN = IEDG 
+                                     ANGLE_LOCAL = ANG                                   
+                                   ENDIF
+                                ENDIF  
+                            ENDIF 
+                        ENDDO
+                                                                        
+c                        INTBUF_TAB(NIN)%MVOISIN(4*(ISURF-1)+IEDG) = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,4*(J-1)+1)
+c                        INTBUF_TAB(NIN)%EVOISIN(4*(ISURF-1)+IEDG) = INEDG
+c                        INTBUF_TAB(NIN)%PROC_MVOISIN(4*(ISURF-1)+IEDG) = PROC_ID
+                      ENDIF
+                    ENDIF
+                ENDDO
+
+
+C-----------------------------------------------------------
+C    SPMD : the proc having the segment determine the neighbour with minimum angle and send the information to the proc having the neighbour to update the information 
+C---------------------------------------------------------
+
+         
+          DO I=1,RECV_NB_2
+            
+            CALL MPI_WAITANY(RECV_NB_2,REQUEST_SIZE_R_2,K,STATUS_MPI,IERROR)
+            CALL MPI_WAITANY(RECV_NB_2,REQUEST_SIZE_R_3,K,STATUS_MPI,IERROR)
+            PROC_ID = INDEX_R_PROC_2(K)
+            ! --------------
+            DO J=1,NUMBER_REMOTE_SURF_R(PROC_ID)
+                NIN = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(2,4*(J-1)+1) ! get the interface id
+                ITY = IPARI(7,NIN)  ! get the type of interface
+                IDEL = IPARI(17,NIN) ! get the kind of idel (1 or 2)
+                NRTM = IPARI(4,NIN)     ! get the number of surfaces of the interface NIN
+                ! --------------
+                GLOCAL_SURFACE_ID = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+1) ! get the global deleted surface id
+                ISURF = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+2) 
+                EDGE_N1 = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+3) ! get the global node of common edge surface id
+                EDGE_N2 = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+4) ! get the global node of common edge surface id
+                INEDG = R_BUFFER2(PROC_ID)%INT_ARRAY_2D(1,5*(J-1)+5) ! get the edge id of the surface
+
+
+                ANGLE = R_BUFFER2(PROC_ID)%REAL_ARRAY_2D(1,J+1) ! get the global node of common edge surface id
+                NOR1 = R_BUFFER2(PROC_ID)%REAL_ARRAY_2D(1,4*(J-1)+2) ! get the global node of common edge surface id
+                NOR2 = R_BUFFER2(PROC_ID)%REAL_ARRAY_2D(1,4*(J-1)+3) ! get the global node of common edge surface id
+                NOR3 = R_BUFFER2(PROC_ID)%REAL_ARRAY_2D(1,4*(J-1)+4) ! get the global node of common edge surface id
+
+
+                NB_SURF1 = SHOOT_STRUCT%SHIFT_M_NODE_SURF(N1+1) - SHOOT_STRUCT%SHIFT_M_NODE_SURF(N1)   ! get the number of surface of the node
+                SHIFT = SHOOT_STRUCT%SHIFT_M_NODE_SURF(N1)
+                INTERSECT_1(1:NB_SURF1) = SHOOT_STRUCT%M_NODE_SURF( SHIFT+1:SHIFT+NB_SURF1 )
+
+                NB_SURF2 = SHOOT_STRUCT%SHIFT_M_NODE_SURF(N2+1) - SHOOT_STRUCT%SHIFT_M_NODE_SURF(N2)   ! get the number of surface of the node
+                SHIFT = SHOOT_STRUCT%SHIFT_M_NODE_SURF(N2)
+                INTERSECT_2(1:NB_SURF2) = SHOOT_STRUCT%M_NODE_SURF( SHIFT+1:SHIFT+NB_SURF2 )
+
+
+
+                IF(NB_SURF1>0.AND. NB_SURF2>0) THEN
+                   CALL INTERSECT_2_SORTED_SETS( INTERSECT_1,NB_SURF1,
+     .                                           INTERSECT_2,NB_SURF2,
+     .                                           RESULT_INTERSECT,NB_RESULT_INTERSECT )
+                ELSE
+                   NB_RESULT_INTERSECT = 0
+                ENDIF
+
+
+
+                ANGLE_LOCAL = 0.0
+                DO K=1,NB_RESULT_INTERSECT
+                    ISURF = RESULT_INTERSECT(K)
+                    ID_INTER = DICHOTOMIC_SEARCH_I_ASC(ISURF, SHIFT_INTERFACE(1,1), NUMBER_INTER+1) ! find the interface of the surface
+                    N = SHIFT_INTERFACE(ID_INTER,2)
+                    ISURF = ISURF - SHIFT_INTERFACE(ID_INTER,1) + 1 ! get the surface id in the NIN interface
+
+
+
+       ! Normal to the segment
+            XS1=ZERO 
+            YS1=ZERO 
+            ZS1=ZERO
+            DO  JJ=1,4
+               NN=INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+JJ)
+               IY(JJ)=NN
+               XX1(JJ)=X(1,NN)
+               XX2(JJ)=X(2,NN)
+               XX3(JJ)=X(3,NN)
+               XS1=XS1+FOURTH*X(1,NN)
+               YS1=YS1+FOURTH*X(2,NN)
+               ZS1=ZS1+FOURTH*X(3,NN)   
+            ENDDO    
+C
+            XX13 =XX1(3)-XX1(1)
+            YY13 =XX2(3)-XX2(1)
+            ZZ13 =XX3(3)-XX3(1)
+            XX24 =XX1(4)-XX1(2)
+            YY24 =XX2(4)-XX2(2)
+            ZZ24 =XX3(4)-XX3(2)
+C
+            NORS1=YY13*ZZ24-ZZ13*YY24
+            NORS2=ZZ13*XX24-XX13*ZZ24
+            NORS3=XX13*YY24-YY13*XX24
+            AREA= MAX(EM20,SQRT(NORS1*NORS1+NORS2*NORS2+NORS3*NORS3))
+            NOR1=NOR1/AREA
+            NOR2=NOR2/AREA
+            NOR3=NOR3/AREA
+
+                        IEDG = 0
+                        DO ID=1,4
+                            IF(.NOT.(INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+3)==INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+4).AND.ID==3))THEN
+                                NN1= INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+ID)
+                                NN2= INTBUF_TAB(NIN)%IRECTM(4*(ISURF-1)+MOD(ID,4)+1)
+                                IF((NN1==N1.AND.NN2==N2).OR.(NN1==N2.AND.NN2==N1)) THEN
+                                   IEDG = ID
+                                   ANG = NOR1*NORS1+NOR2*NORS2+NOR3*NORS3
+                                   IF(ANG < ANGLE_LOCAL ) THEN
+                                     ISURF_MIN = ISURF 
+                                     IEDG_MIN = IEDG 
+                                     ANGLE_LOCAL = ANG                                   
+                                   ENDIF
+                                ENDIF  
+                            ENDIF 
+                        ENDDO
+                                                                        
+c                        INTBUF_TAB(NIN)%MVOISIN(4*(ISURF-1)+IEDG) = R_BUFFER(PROC_ID)%INT_ARRAY_2D(1,4*(J-1)+1)
+c                        INTBUF_TAB(NIN)%EVOISIN(4*(ISURF-1)+IEDG) = INEDG
+c                        INTBUF_TAB(NIN)%PROC_MVOISIN(4*(ISURF-1)+IEDG) = PROC_ID
+                      ENDIF
+                    ENDIF
+                ENDDO
+
+
+                ! --------------
+            ENDDO
+            CALL DEALLOC_2D_ARRAY(R_BUFFER(PROC_ID)) 
+            ! --------------
+          ENDDO
+        ! ----------------
+
+
+
+
+
+
+
 #else   
           N = ITABM1(1)    ! unused instruction : just for compilation purpose (itabm1 have to be used)    
 #endif
@@ -624,9 +1114,34 @@ C---------------------------------------------------------
                     NBDDEDG = 0           
                     NI25=NI25+1           
                     DO I = 1, NRTM  
+           IF(NCYCLE== 22333) THEN
+            IF(ISPMD==0) THEN
+              IF(INTBUF_TAB(NIN)%MSEGLO(I)==15759) THEN
+              write(*,*) ' ISPMD 0 P 3 I 15759', ISPMD,I, INTBUF_TAB(NIN)%MSEGLO(I),INTBUF_TAB(NIN)%STFM(I)
+              endif
+            ENDIF
+            IF(ISPMD==2) THEN
+              IF(INTBUF_TAB(NIN)%MSEGLO(I)==15765) THEN
+              write(*,*) ' ISPMD 3 P 1 I 15765', ISPMD,I, INTBUF_TAB(NIN)%MSEGLO(I),INTBUF_TAB(NIN)%STFM(I)
+              endif
+            ENDIF
+           ENDIF
                       IF(INTBUF_TAB(NIN)%STFM(I) > ZERO ) THEN ! neighboor external surfaces
                         DO J = 1,4
                           K = INTBUF_TAB(NIN)%MVOISIN(4*(I-1)+J)
+c           IF(NCYCLE== 22333) THEN
+            IF(ISPMD==0) THEN
+              IF(INTBUF_TAB(NIN)%MSEGLO(I)==15759) then
+              write(*,*) ' ISPMD 0 voisin I 15759', ISPMD,NCYCLE,I, INTBUF_TAB(NIN)%MSEGLO(I),K,INTBUF_TAB(NIN)%MSEGLO(K),INTBUF_TAB(NIN)%PROC_MVOISIN(4*(I-1)+J),J
+              endif
+            ENDIF
+            IF(ISPMD==2) THEN
+              IF(INTBUF_TAB(NIN)%MSEGLO(I)==15765) THEN
+              write(*,*) ' ISPMD 3 voisin I 15765', ISPMD,NCYCLE,I, INTBUF_TAB(NIN)%MSEGLO(I),K,INTBUF_TAB(NIN)%MSEGLO(K),INTBUF_TAB(NIN)%PROC_MVOISIN(4*(I-1)+J),J,
+     . ITAB(INTBUF_TAB(1)%IRECTM(4*(I-1)+1)),ITAB(INTBUF_TAB(1)%IRECTM(4*(I-1)+2)),ITAB(INTBUF_TAB(1)%IRECTM(4*(I-1)+3)),ITAB(INTBUF_TAB(1)%IRECTM(4*(I-1)+4))
+              endif
+            ENDIF
+c           ENDIF
                           IF(K/=0)THEN
                              P = INTBUF_TAB(NIN)%PROC_MVOISIN(4*(I-1)+J)
                              IF(P /= ISPMD+1) THEN
@@ -644,6 +1159,14 @@ C---------------------------------------------------------
                                ITRI25(3,NBDDEDG) =  MAX(-K,INTBUF_TAB(NIN)%MSEGLO(I))
                                ITRI25(4,NBDDEDG) =  MIN(ITAB(N1),ITAB(N2))
                                ITRI25(5,NBDDEDG) =  MAX(ITAB(N1),ITAB(N2))
+c           IF(NCYCLE== 22333) THEN
+c            IF(ISPMD==0.AND.P==3) THEN
+c              write(*,*) ' ISPMD 0 P 3', ISPMD,P, NBDDEDG,I, INTBUF_TAB(NIN)%MSEGLO(I),K,INTBUF_TAB(NIN)%MSEGLO(K),J
+c            ENDIF
+c            IF(ISPMD==2.AND.P==1) THEN
+c              write(*,*) ' ISPMD 3 P 1', ISPMD,P, NBDDEDG,I, INTBUF_TAB(NIN)%MSEGLO(I),K,INTBUF_TAB(NIN)%MSEGLO(K),J
+c            ENDIF
+c           ENDIF
                              ENDIF
                           END IF
                         ENDDO

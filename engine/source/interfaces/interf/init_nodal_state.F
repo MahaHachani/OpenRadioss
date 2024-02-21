@@ -140,6 +140,18 @@ C-----------------------------------------------
         ALLOCATE( R_BUFFER_SECOND(NSPMD) )
         ALLOCATE( R_BUFFER_MAIN(NSPMD) )
 
+c           IF(NCYCLE== 22333) THEN
+        Do I=1,IPARI(4,1)
+            IF(ISPMD==2) THEN
+              IF(INTBUF_TAB(1)%MSEGLO(I)==15765) then
+              write(*,*) '5759 debut', ISPMD,I, INTBUF_TAB(1)%MSEGLO(I),INTBUF_TAB(1)%IELEM_M(2*(I-1)+1),NUMELS,INTBUF_TAB(1)%STFM(I),
+     . ITAB(INTBUF_TAB(1)%IRECTM(4*(I-1)+1)),ITAB(INTBUF_TAB(1)%IRECTM(4*(I-1)+2)),ITAB(INTBUF_TAB(1)%IRECTM(4*(I-1)+3)),ITAB(INTBUF_TAB(1)%IRECTM(4*(I-1)+4)),
+     . INTBUF_TAB(1)%MVOISIN(4*(I-1)+1),INTBUF_TAB(1)%MVOISIN(4*(I-1)+2),INTBUF_TAB(1)%MVOISIN(4*(I-1)+3),INTBUF_TAB(1)%MVOISIN(4*(I-1)+4)
+              endif
+            ENDIF
+        enddo
+c           ENDIF
+
         BUFFER_SECOND(1:NSPMD)%SIZE_INT_ARRAY_1D = 0
         BUFFER_MAIN(1:NSPMD)%SIZE_INT_ARRAY_1D = 0
         R_BUFFER_SECOND(1:NSPMD)%SIZE_INT_ARRAY_1D = 0

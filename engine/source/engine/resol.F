@@ -2301,6 +2301,7 @@ C Init var parallel SMP
 
           CHECK_NEIGH_FLAG = 0 !CHECK_NEIGH_FLAG,CHECK_NEIGH_FLAG_RES
           IF(ITSK==0) THEN 
+          write(*,*) 'NCYCLE',NCYCLE
                 CALL FIND_SURFACE_INTER( ITAB  ,SHOOT_STRUCT  ,IXS  ,IXS(L1)  ,IXC  ,
      .                                   IXTG  ,INTERFACES    ,INTBUF_TAB,SHOOT_STRUCT%SHIFT_INTERFACE,
      .                                   NGROUP,NPARG         ,IGROUPS   ,IPARG    ,CHECK_NEIGH_FLAG )
@@ -5439,6 +5440,7 @@ C WA local  : utilise de 1 a NUMNOD
 
           CHECK_NEIGH_FLAG = 0
           IF(ITSK==0) THEN 
+          write(*,*) 'NCYCLE',NCYCLE
                 CALL FIND_SURFACE_INTER( ITAB  ,SHOOT_STRUCT  ,IXS  ,IXS(L1)  ,IXC  ,
      .                                   IXTG  ,INTERFACES    ,INTBUF_TAB,SHOOT_STRUCT%SHIFT_INTERFACE,
      .                                   NGROUP,NPARG,IGROUPS,IPARG      ,CHECK_NEIGH_FLAG)

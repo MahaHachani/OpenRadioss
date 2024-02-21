@@ -55,7 +55,7 @@ C-----------------------------------------------
 
         IF(MY_OPERATION(1:3)=="SUM") THEN
                 MPI_OPERATION=MPI_SUM
-        ELSEIF(MY_OPERATION(1:4)=="PROD") THEN
+        ELSEIF(MY_OPERATION(1:3)=="PRO") THEN
                 MPI_OPERATION=MPI_PROD
         ELSEIF(MY_OPERATION(1:3)=="MAX") THEN
                 MPI_OPERATION=MPI_MAX
