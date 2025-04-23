@@ -75,9 +75,9 @@ C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
       INTEGER I, J, K, L, N, IT, N4N, MGLOB, ETYP(MVSIZ),
-     .        NINDX, INDX(MVSIZ), I4N(MVSIZ), 
+     .        NINDX, INDX(MVSIZ), I4N(MVSIZ), ISHEL(MVSIZ),
      .        FAR(MVSIZ,4), SUBTRIA(MVSIZ), I1, I2, ITRIA(2,4), JJ
-      INTEGER IB1, IB2, IB3, IBX, IX, IY, IZ, NBORD, KBORD(MVSIZ)
+      INTEGER IB1, IB2, IB3, IBX, IX, IY, IZ, NBORD, KBORD(MVSIZ),ISH
       my_real
      .   UNP,ZEROM,EPS,UNPT,ZEROMT,AAA,BB(MVSIZ,4)
       my_real
@@ -109,8 +109,10 @@ C-----------------------------------------------
      .     NNE(MVSIZ), XH(MVSIZ), YH(MVSIZ), ZH(MVSIZ), XC, YC, ZC, DC, P1, P2, D1, D2, D3, GAPM
       REAL*4 VTX_BISECTOR(3,2,*)
       DATA ITRIA/1,2,2,3,3,4,4,1/
+      LOGICAL :: SOLID_CONTACT
 C-----------------------------------------------
-      NINDX=0       
+      NINDX=0    
+      ISHEL(1:JLT)=0   
       DO I=1,JLT
         L       = CAND_E(I)
         ETYP(I) =MSEGTYP(L)
@@ -124,6 +126,12 @@ C
 C         Computing initial penetrations vs shells except opposite segments to the coating shells
           NINDX=NINDX+1
           INDX(NINDX)=I
+        END IF
+C
+        ISH=MSEGTYP(L)
+        IF(ISH > 0) THEN
+           IF(ISH > NRTM)ISH=ISH-NRTM
+           ISHEL(I)=ISH
         END IF
       END DO
 C-----------------------------------------------
@@ -527,15 +535,21 @@ C       Projection en dehors du triangle
         IF(LB(I,IT) < -EM03 .OR. LC(I,IT) < -EM03 .OR.
      .      LB(I,IT)+LC(I,IT) > ONE+EM03) FAR(I,IT)=1
 C
+        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+           SOLID_CONTACT = .TRUE.
+        ELSE
+           SOLID_CONTACT = .FALSE.
+        ENDIF
+C
         IF(IX3(I) /= IX4(I))THEN
 C
           IB1=IBOUND(I1,I)
           IB2=IBOUND(I2,I)
           IF(MVOISN(I,IT)==0)THEN     
 C
-            IF( (XH(I)-XX(I,I1))* NNX(I,IT)+
+            IF(((XH(I)-XX(I,I1))* NNX(I,IT)+
      .          (YH(I)-YY(I,I1))* NNY(I,IT)+
-     .          (ZH(I)-ZZ(I,I1))* NNZ(I,IT) >= GAPS(I)) FAR(I,IT) =2
+     .          (ZH(I)-ZZ(I,I1))* NNZ(I,IT) >= GAPS(I)).AND.SOLID_CONTACT) FAR(I,IT) =2
 C
           ELSEIF((IB1 /= 0 .AND. IB2 == 0).OR.
      .           (IB2 /= 0 .AND. IB1 == 0))THEN
@@ -559,14 +573,14 @@ C
               P2 = (XH(I)-XX(I,IX))* VTX_BISECTOR(1,2,IBX)+
      .             (YH(I)-YY(I,IX))* VTX_BISECTOR(2,2,IBX)+
      .             (ZH(I)-ZZ(I,IX))* VTX_BISECTOR(3,2,IBX)
-              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I)) FAR(I,IT) =2
+              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SOLID_CONTACT) FAR(I,IT) =2
             ELSE
               VX = X0N(I,IX) ! fake bisector of angle at vertex IX
               VY = Y0N(I,IX)
               VZ = Z0N(I,IX)
               NN = ONE/MAX(EM20,SQRT(VX*VX+VY*VY+VZ*VZ))
               PN = ((XH(I)-XX(I,IX))*VX+(YH(I)-YY(I,IX))*VY+(ZH(I)-ZZ(I,IX))*VZ)*NN
-              IF(PN >= GAPS(I)) FAR(I,IT) =2
+              IF(PN >= GAPS(I).AND.SOLID_CONTACT) FAR(I,IT) =2
             END IF
 C
           END IF
@@ -608,9 +622,9 @@ C
      .       (YH(I)-YY(I,3))* NNY(I,4)+
      .       (ZH(I)-ZZ(I,3))* NNZ(I,4)
 C
-          IF( (MVOISN(I,1) == 0 .AND. D1 >= GAPS(I)).OR.
+          IF(((MVOISN(I,1) == 0 .AND. D1 >= GAPS(I)).OR.
      .        (MVOISN(I,2) == 0 .AND. D2 >= GAPS(I)).OR.
-     .        (MVOISN(I,4) == 0 .AND. D3 >= GAPS(I)) )THEN
+     .        (MVOISN(I,4) == 0 .AND. D3 >= GAPS(I))) .AND.SOLID_CONTACT)THEN
 C
             FAR(I,IT)=2
 C
@@ -645,14 +659,14 @@ C
               P2 = (XH(I)-XX(I,IX))* VTX_BISECTOR(1,2,IBX)+
      .             (YH(I)-YY(I,IX))* VTX_BISECTOR(2,2,IBX)+
      .             (ZH(I)-ZZ(I,IX))* VTX_BISECTOR(3,2,IBX)
-              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I)) FAR(I,IT) =2
+              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SOLID_CONTACT) FAR(I,IT) =2
             ELSE
               VX = TWO*XX(I,IX)-(XX(I,IY)+XX(I,IZ)) ! fake bisector of angle 2,1,3
               VY = TWO*YY(I,IX)-(YY(I,IY)+YY(I,IZ))
               VZ = TWO*ZZ(I,IX)-(ZZ(I,IY)+ZZ(I,IZ))
               NN = ONE/MAX(EM20,SQRT(VX*VX+VY*VY+VZ*VZ))
               PN = ((XH(I)-XX(I,IX))*VX+(YH(I)-YY(I,IX))*VY+(ZH(I)-ZZ(I,IX))*VZ)*NN
-              IF(PN >= GAPS(I)) FAR(I,IT) =2
+              IF(PN >= GAPS(I).AND.SOLID_CONTACT) FAR(I,IT) =2
             END IF
 C
           END IF
@@ -762,7 +776,13 @@ C
          CYCLE
         ENDIF
 C
-        IF(IX3(I) /= IX4(I))THEN
+        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+           SOLID_CONTACT = .TRUE.
+        ELSE
+           SOLID_CONTACT = .FALSE.
+        ENDIF
+C
+        IF(IX3(I) /= IX4(I).AND.SOLID_CONTACT)THEN
 C
           IB1=IBOUND(I1,I)
           IB2=IBOUND(I2,I)
@@ -853,7 +873,7 @@ C     .        itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i))
 
           END IF
 C
-        ELSE ! IF(IX3(I) /= IX4(I))THEN
+        ELSEIF(IX3(I) /= IX4(I).AND.SOLID_CONTACT)THEN
 
           IB1=IBOUND(1,I)
           IB2=IBOUND(2,I)

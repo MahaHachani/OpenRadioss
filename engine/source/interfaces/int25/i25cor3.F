@@ -789,7 +789,7 @@ C
      K               Y3        ,Z3    ,X4      ,Y4     ,Z4          ,
      L               INTTH     ,TEMP  ,TEMPI   ,IELES  ,IELESI      ,
      M               IELEM     ,IELEMI,ISTIF_MSDT,DTSTIF,STIFMSDT_S ,
-     N               STIFMSDT_M,NRTM  ,PARAMETERS) 
+     N               STIFMSDT_M,NRTM  ,PARAMETERS,ISHEL,MSEGTYP) 
 C-----------------------------------------------
 C   M o d u l e s
 C-----------------------------------------------
@@ -821,6 +821,8 @@ C-----------------------------------------------
      .        IREP_FRICM(*),IREP_FRICMI(MVSIZ),IELESI(MVSIZ),IELEMI(MVSIZ)
       INTEGER , INTENT(IN) :: ISTIF_MSDT
       INTEGER , INTENT(IN) :: NRTM
+      INTEGER , INTENT(IN) ::MSEGTYP(NRTM)
+      INTEGER , INTENT(INOUT) ::ISHEL(MVSIZ)
 C     REAL
       my_real
      .   X(3,*), STF(*), STFN(*), MS(*), V(3,*), 
@@ -851,11 +853,12 @@ C     REAL
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
-      INTEGER I ,J , L, NN, IG, JFT, IX,  NI, I1, I2, I3, I4, IT
+      INTEGER I ,J , L, NN, IG, JFT, IX,  NI, I1, I2, I3, I4, IT, ISH
       my_real
      .        XN,DTS,STIF_MSDT(MVSIZ)
 C-----------------------------------------------
       IBOUND(1:4,1:JLT)=0
+      ISHEL(1:JLT)=0
       DO I=1,JLT
            NI = CAND_N(I)
            IF(NI<=NSN)THEN
@@ -946,6 +949,11 @@ C
              IF(LBOUND(ADMSR(J,L))/=0)IBOUND(J,I)=ADMSR(J,L)
            END DO
 C
+           ISH=MSEGTYP(L)
+           IF(ISH > 0) THEN
+             IF(ISH > NRTM)ISH=ISH-NRTM
+             ISHEL(I)=ISH
+           END IF
       END DO
 C
       IF(IGAP/=3)THEN

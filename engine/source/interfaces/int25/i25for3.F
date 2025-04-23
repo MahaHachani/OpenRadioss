@@ -377,6 +377,18 @@ C---------------------------------
 C     Contact Energy (elastic)
 C---------------------------------
       DO I=1,JLT
+c        if(itab(ix1(i))==10304222.and.itab(ix2(i))==10304222.and.
+c     . itab(ix3(i))==10304222.and.itab(ix4(i))==10304222.and.itab(nsvg(i))==10304222) THEN
+c         write(*,*) 'node 10304222 en contact',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),STIF(I),
+c     . N1(I),N2(I),N3(I),PENE(I)
+c         pause
+c        endif
+c        if(itab(ix1(i))==10304949.and.itab(ix2(i))==10304949.and.
+c     . itab(ix3(i))==10304949.and.itab(ix4(i))==10304949.and.itab(nsvg(i))==10304949) THEN
+c         write(*,*) 'node 2502 en contact',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),STIF(I),
+c     . N1(I),N2(I),N3(I),PENE(I)
+c         pause
+c        endif
         IF(PENE(I) == ZERO)CYCLE
         ECONTT = ECONTT+HALF*STIF(I)*PENE(I)**2
       END DO

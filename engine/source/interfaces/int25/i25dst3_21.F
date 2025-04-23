@@ -112,6 +112,7 @@ C-----------------------------------------------
      .     PREC
       INTEGER ISHEL(MVSIZ)
       DATA ITRIA/1,2,2,3,3,4,4,1/
+      LOGICAL :: SOLID_CONTACT
 C-----------------------------------------------------------------------
 C
 C initialisation (cf triangles)
@@ -142,6 +143,9 @@ C
         X0N(I,4) = XX(I,4) - XX(I,5)
         Y0N(I,4) = YY(I,4) - YY(I,5)
         Z0N(I,4) = ZZ(I,4) - ZZ(I,5)
+        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
+       write(*,*) 'node 91636 en i25dst22',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),STIF(I)
+       endif
 C
         IF(IX3(I)/=IX4(I))THEN
           GAP_MM(I)=FOURTH*(GAP_NM(1,I)+GAP_NM(2,I)+GAP_NM(3,I)+GAP_NM(4,I))
@@ -560,6 +564,12 @@ C       Projection en dehors du triangle
         IF(LB(I,IT) < -EM03 .OR. LC(I,IT) < -EM03 .OR.
      .      LB(I,IT)+LC(I,IT) > ONE+EM03) FAR(I,IT)=1
 C
+        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+           SOLID_CONTACT = .TRUE.
+        ELSE
+           SOLID_CONTACT = .FALSE.
+        ENDIF
+C
         XH=XI(I)+BB(I,IT)*XN(I,IT)
         YH=YI(I)+BB(I,IT)*YN(I,IT)
         ZH=ZI(I)+BB(I,IT)*ZN(I,IT)
@@ -572,7 +582,7 @@ C
 C
             IF( (XH-XX(I,I1))* NNX(I,IT)+
      .          (YH-YY(I,I1))* NNY(I,IT)+
-     .          (ZH-ZZ(I,I1))* NNZ(I,IT) >= GAPS(I)) FAR(I,IT) =2
+     .          (ZH-ZZ(I,I1))* NNZ(I,IT) >= GAPS(I).AND.SOLID_CONTACT) FAR(I,IT) =2
 C
           ELSEIF((IB1 /= 0 .AND. IB2 == 0).OR.
      .           (IB2 /= 0 .AND. IB1 == 0))THEN
@@ -596,14 +606,14 @@ C
               P2 = (XH-XX(I,IX))* VTX_BISECTOR(1,2,IBX)+
      .             (YH-YY(I,IX))* VTX_BISECTOR(2,2,IBX)+
      .             (ZH-ZZ(I,IX))* VTX_BISECTOR(3,2,IBX)
-              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I)) FAR(I,IT) =2
+              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SOLID_CONTACT) FAR(I,IT) =2
             ELSE
               VX = X0N(I,IX) ! fake bisector of angle at vertex IX
               VY = Y0N(I,IX)
               VZ = Z0N(I,IX)
               NN = ONE/MAX(EM20,SQRT(VX*VX+VY*VY+VZ*VZ))
               PN = ((XH-XX(I,IX))*VX+(YH-YY(I,IX))*VY+(ZH-ZZ(I,IX))*VZ)*NN
-              IF(PN >= GAPS(I)) FAR(I,IT) =2
+              IF(PN >= GAPS(I).AND.SOLID_CONTACT) FAR(I,IT) =2
             END IF
 C
           END IF
@@ -653,9 +663,9 @@ C
      .       (YH-YY(I,3))* NNY(I,4)+
      .       (ZH-ZZ(I,3))* NNZ(I,4)
 C
-          IF( (MVOISN(I,1) == 0 .AND. D1 >= GAPS(I)).OR.
+          IF( ((MVOISN(I,1) == 0 .AND. D1 >= GAPS(I)).OR.
      .        (MVOISN(I,2) == 0 .AND. D2 >= GAPS(I)).OR.
-     .        (MVOISN(I,4) == 0 .AND. D3 >= GAPS(I)) )THEN
+     .        (MVOISN(I,4) == 0 .AND. D3 >= GAPS(I)) ).AND.SOLID_CONTACT)THEN
 C
             FAR(I,IT)=2
 C
@@ -690,14 +700,14 @@ C
               P2 = (XH-XX(I,IX))* VTX_BISECTOR(1,2,IBX)+
      .             (YH-YY(I,IX))* VTX_BISECTOR(2,2,IBX)+
      .             (ZH-ZZ(I,IX))* VTX_BISECTOR(3,2,IBX)
-              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I)) FAR(I,IT) =2
+              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SOLID_CONTACT) FAR(I,IT) =2
             ELSE
               VX = TWO*XX(I,IX)-(XX(I,IY)+XX(I,IZ)) ! fake bisector of angle 2,1,3
               VY = TWO*YY(I,IX)-(YY(I,IY)+YY(I,IZ))
               VZ = TWO*ZZ(I,IX)-(ZZ(I,IY)+ZZ(I,IZ))
               NN = ONE/MAX(EM20,SQRT(VX*VX+VY*VY+VZ*VZ))
               PN = ((XH-XX(I,IX))*VX+(YH-YY(I,IX))*VY+(ZH-ZZ(I,IX))*VZ)*NN
-              IF(PN >= GAPS(I)) FAR(I,IT) =2
+              IF(PN >= GAPS(I).AND.SOLID_CONTACT) FAR(I,IT) =2
             END IF
 C
           END IF

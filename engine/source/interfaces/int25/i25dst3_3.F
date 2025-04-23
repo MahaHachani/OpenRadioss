@@ -38,7 +38,8 @@ Copyright>        commercial version may interest you: https://www.altair.com/ra
      7 INACTI      ,KINI        ,ITAB        ,LB          ,LC          ,
      8 PENMIN      ,EPS         ,PENE        ,PENE_OLD    ,SUBTRIA     , 
      9 GAPV        ,IVIS2       ,IF_ADH      ,IFADHI      ,BASE_ADH    ,
-     A MVOISN      ,IBOUND      ,VTX_BISECTOR,DIST        ,TIME )
+     A MVOISN      ,IBOUND      ,VTX_BISECTOR,DIST        ,TIME        ,
+     B ISHEL       )
 C-----------------------------------------------
 C   M o d u l e s
 C-----------------------------------------------
@@ -74,6 +75,7 @@ C-----------------------------------------------
       REAL*4 VTX_BISECTOR(3,2,*)
       my_real  , INTENT(INOUT) :: DIST(MVSIZ)
       my_real  , INTENT(IN)    :: TIME
+      INTEGER  , INTENT(IN)    :: ISHEL(MVSIZ)
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
@@ -95,6 +97,7 @@ C-----------------------------------------------
      .        PN, VX, VY, VZ,
      .        NNE1,NNE2,NNE4
       DATA ITRIA/1,2,2,3,3,4,4,1/
+      LOGICAL :: SOLID_CONTACT
 C--------------------------------------------------------
 C     zone limite interpolation des normales
       EPSEG = (TWO+HALF)/HUNDRED
@@ -122,6 +125,11 @@ C
         ELSE
           GAP_MM(I)=GAP_NM(3,I)
         END IF
+
+c        if(itab(ix1(i))==10304222.and.itab(ix2(i))==10304222.and.
+c     . itab(ix3(i))==10304222.and.itab(ix4(i))==10304222.and.itab(nsvg(i))==10304222) THEN
+c       write(*,*) 'node debut en i25dst33',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),GAPS(I)
+c       endif
 C
       ENDDO
 C--------------------------------------------------------
@@ -365,7 +373,13 @@ C
         I1=ITRIA(1,IT)
         I2=ITRIA(2,IT)
 C
-        IF(IX3(I)/=IX4(I))THEN
+C
+        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+           SOLID_CONTACT = .TRUE.
+        ELSE
+           SOLID_CONTACT = .FALSE.
+        ENDIF
+        IF(IX3(I)/=IX4(I).AND.SOLID_CONTACT)THEN
 
           IB1=IBOUND(I1,I)
           IB2=IBOUND(I2,I)
@@ -504,7 +518,7 @@ C
 
           END IF
  
-        ELSEIF(IX3(I)==IX4(I))THEN
+        ELSEIF(IX3(I)==IX4(I).AND.SOLID_CONTACT)THEN
 
           IB1=IBOUND(1,I)
           IB2=IBOUND(2,I)
@@ -525,9 +539,9 @@ C         Projection sur le plan et Distance signee au plan
               NNE4 = (XH(I)-XX(I,5))*NNX(I,5)+(YH(I)-YY(I,5))*NNY(I,5)+(ZH(I)-ZZ(I,5))*NNZ(I,5)
 
 
-            IF((MVOISN(I,1)==0 .AND. NNE1 < NNE(I)) .OR.
+            IF(((MVOISN(I,1)==0 .AND. NNE1 < NNE(I)) .OR.
      .        (MVOISN(I,2)==0 .AND. NNE2 < NNE(I)) .OR.
-     .        (MVOISN(I,4)==0 .AND. NNE4 < NNE(I))) THEN
+     .        (MVOISN(I,4)==0 .AND. NNE4 < NNE(I)))) THEN
 
               NBORD=NBORD+1
               KBORD(NBORD)=I
@@ -948,8 +962,19 @@ C
            PENE_SHFT= MAX(ZERO,PENE(I)-PENE_OLDFI(NIN)%P(5,JG))
 
          ENDIF
+c        if(itab(ix1(i))==10304222.and.itab(ix2(i))==10304222.and.
+c     . itab(ix3(i))==10304222.and.itab(ix4(i))==10304222.and.itab(nsvg(i))==10304222) THEN
+c       write(*,*) 'node 10304222 en i25dst33',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),
+c     .PENE(I),PENE_OLD(5,N),PENE_SHFT
+c       endif
+c        if(itab(ix1(i))==10304949.and.itab(ix2(i))==10304949.and.
+c     . itab(ix3(i))==10304949.and.itab(ix4(i))==10304949.and.itab(nsvg(i))==10304949) THEN
+c       write(*,*) 'node 10304949 en i25dst33',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),
+c     .PENE(I),PENE_OLD(5,N),PENE_SHFT
+c       endif
          PENE(I) = PENE_SHFT
         ENDDO
+c        pause
 C       END IF !IF (INACTI==5)
 C pene_old(5,N) is defined from the real_gap, gap = 2*real_gap, pene is measured from real_gap
       ELSE ! IVIS2==-1 (Adhesion case)
