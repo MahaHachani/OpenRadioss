@@ -97,7 +97,7 @@ C-----------------------------------------------
      .        PN, VX, VY, VZ,
      .        NNE1,NNE2,NNE4
       DATA ITRIA/1,2,2,3,3,4,4,1/
-      LOGICAL :: SOLID_CONTACT
+      LOGICAL :: SHELL_CONTACT
 C--------------------------------------------------------
 C     zone limite interpolation des normales
       EPSEG = (TWO+HALF)/HUNDRED
@@ -125,11 +125,6 @@ C
         ELSE
           GAP_MM(I)=GAP_NM(3,I)
         END IF
-
-c        if(itab(ix1(i))==10304222.and.itab(ix2(i))==10304222.and.
-c     . itab(ix3(i))==10304222.and.itab(ix4(i))==10304222.and.itab(nsvg(i))==10304222) THEN
-c       write(*,*) 'node debut en i25dst33',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),GAPS(I)
-c       endif
 C
       ENDDO
 C--------------------------------------------------------
@@ -375,11 +370,12 @@ C
 C
 C
         IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
-           SOLID_CONTACT = .TRUE.
+           SHELL_CONTACT = .TRUE.
         ELSE
-           SOLID_CONTACT = .FALSE.
+           SHELL_CONTACT = .FALSE.
         ENDIF
-        IF(IX3(I)/=IX4(I).AND.SOLID_CONTACT)THEN
+
+        IF(IX3(I)/=IX4(I).AND.SHELL_CONTACT)THEN
 
           IB1=IBOUND(I1,I)
           IB2=IBOUND(I2,I)
@@ -518,7 +514,7 @@ C
 
           END IF
  
-        ELSEIF(IX3(I)==IX4(I).AND.SOLID_CONTACT)THEN
+        ELSEIF(IX3(I)==IX4(I).AND.SHELL_CONTACT)THEN
 
           IB1=IBOUND(1,I)
           IB2=IBOUND(2,I)
@@ -962,19 +958,8 @@ C
            PENE_SHFT= MAX(ZERO,PENE(I)-PENE_OLDFI(NIN)%P(5,JG))
 
          ENDIF
-c        if(itab(ix1(i))==10304222.and.itab(ix2(i))==10304222.and.
-c     . itab(ix3(i))==10304222.and.itab(ix4(i))==10304222.and.itab(nsvg(i))==10304222) THEN
-c       write(*,*) 'node 10304222 en i25dst33',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),
-c     .PENE(I),PENE_OLD(5,N),PENE_SHFT
-c       endif
-c        if(itab(ix1(i))==10304949.and.itab(ix2(i))==10304949.and.
-c     . itab(ix3(i))==10304949.and.itab(ix4(i))==10304949.and.itab(nsvg(i))==10304949) THEN
-c       write(*,*) 'node 10304949 en i25dst33',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),
-c     .PENE(I),PENE_OLD(5,N),PENE_SHFT
-c       endif
          PENE(I) = PENE_SHFT
         ENDDO
-c        pause
 C       END IF !IF (INACTI==5)
 C pene_old(5,N) is defined from the real_gap, gap = 2*real_gap, pene is measured from real_gap
       ELSE ! IVIS2==-1 (Adhesion case)

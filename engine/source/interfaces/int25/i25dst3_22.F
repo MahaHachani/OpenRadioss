@@ -144,7 +144,7 @@ C-----------------------------------------------
       DATA ITRIA/1,2,2,3,3,4,4,1/,
      .     ITPERM/1,4,3,2/
       LOGICAL :: ANY_TRIANGLE
-      LOGICAL :: SOLID_CONTACT
+      LOGICAL :: SHELL_CONTACT
 C-----------------------------------------------------------------------
 C
       UNP   = ONE + EM4
@@ -241,12 +241,7 @@ C
        ICONT_R(1:JLT) = 0        
 C
        DO I=1,JLT
-C   attention triangles 
-
-c        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
-c       write(*,*) 'node 91636 en i25dst22',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),STIF(I)
-c       endif
-  
+C   attention triangles   
          XI5 = XX(I,5) - XI(I)
          YI5 = YY(I,5) - YI(I)
          ZI5 = ZZ(I,5) - ZI(I)
@@ -255,11 +250,6 @@ c       endif
          V23  = XN(I,2)*XI5 + YN(I,2)*YI5 + ZN(I,2)*ZI5
          V34  = XN(I,3)*XI5 + YN(I,3)*YI5 + ZN(I,3)*ZI5 
          V41  = XN(I,4)*XI5 + YN(I,4)*YI5 + ZN(I,4)*ZI5    
-c        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
-c         write(*,*) 'node 91636 en i25dst22 1',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),
-c     . V12,V23,V34,V41,XN(I,1:4),YN(I,1:4),ZN(I,1:4),XI5,YI5,ZI5
-c        endif
-  
          
          IF(ISHEL(I)==0)THEN
            IF(V12 < ZERO .and. V23 < ZERO .and. 
@@ -364,10 +354,6 @@ c        (intersection time can be different for each sub-triangle)
      A                      ZI(I)   ,XOI    ,YOI    ,ZOI   ,ZEROM  ,
      B                      UNP    ,ZEROMT,UNPT   )
 
-c        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
-c         write(*,*) 'node 91636 en i25dst22 1',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),INTERSECA
-c        endif
-
            IKEEP = 1
            N = CAND_N(I)
            IF(N <= NSN) THEN
@@ -375,9 +361,6 @@ c        endif
            ELSE
               IF(ICONT_I_FI(NIN)%P(N-NSN) < 0) IKEEP = 0
            ENDIF
-c        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
-c         write(*,*) 'node 91636 en i25dst22 2',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),INTERSECA,IKEEP
-c        endif
 
            IF(IKEEP == 1.AND.INTERSECA == 0)THEN ! IF contact in the same side : intersection is missed and have to be checked
               CALL INTERSECV0_25(
@@ -396,10 +379,6 @@ c        endif
            ENDIF
 
            INTERSECTA(I)=INTERSECA
-c        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
-c         write(*,*) 'node 91636 en i25dst22 3',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),INTERSECA,IKEEP
-c        endif
-
          ELSE
            CALL INTERSECB_25(
      1                      IX3(I)      ,IX4(I),INTERSECA,INTERSECB,
@@ -418,9 +397,6 @@ c        endif
            INTERSECTB(I)=INTERSECB
          END IF
 C
-c        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
-c       write(*,*) 'node 91636 en i25dst22 4',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),INTERSECA,INTERSECB
-c       endif
       ENDDO
 C--------------------------------------------------------
 C#include  "vectorize.inc"
@@ -803,10 +779,6 @@ C
 C      IF (STIF(I) == ZERO)CYCLE
 C 
        IT=SUBTRIA(I)
-
-c        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
-c       write(*,*) 'node 91636 en i25dst22 5',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),it,INTERSECTA(I),PENA(I,IT)
-c       endif
        IF(IT==0)CYCLE
 C          
        I1=ITRIA(1,IT)
@@ -835,9 +807,6 @@ C--------exclude high pene in case of ICONT_R
         END IF!(ICONT_R(I) >0)THEN
 C
 C
-c        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
-c       write(*,*) 'node 91636 en i25dst22 6',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),it,PENA(I,IT)
-c       endif
       ENDDO
 C--------------------------------------------------------
 C     Check vs bissectors ...
@@ -860,9 +829,9 @@ C
         ZH=ZI(I)+BB(I,IT)*ZN(I,IT)
 C
         IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
-           SOLID_CONTACT = .FALSE.
+           SHELL_CONTACT = .TRUE.
         ELSE
-           SOLID_CONTACT = .TRUE.
+           SHELL_CONTACT = .FALSE.
         ENDIF
 C
         IF(IX3(I) /= IX4(I))THEN
@@ -873,7 +842,7 @@ C
 C
             IF( (XH-XX(I,I1))* NAX(I,IT)+
      .          (YH-YY(I,I1))* NAY(I,IT)+
-     .          (ZH-ZZ(I,I1))* NAZ(I,IT) >= GAPS(I).AND.SOLID_CONTACT) FARA(I,IT) =3
+     .          (ZH-ZZ(I,I1))* NAZ(I,IT) >= GAPS(I).AND.SHELL_CONTACT) FARA(I,IT) =3
 C
           ELSEIF((IB1 /= 0 .AND. IB2 == 0).OR.
      .           (IB2 /= 0 .AND. IB1 == 0))THEN
@@ -903,14 +872,14 @@ C
               P2 = (XH-XX(I,IX))* VTX_BISECTOR(1,2,IBX)+
      .             (YH-YY(I,IX))* VTX_BISECTOR(2,2,IBX)+
      .             (ZH-ZZ(I,IX))* VTX_BISECTOR(3,2,IBX)
-              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SOLID_CONTACT) FARA(I,IT) =3
+              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SHELL_CONTACT) FARA(I,IT) =3
             ELSE
               VX = X0N(I,IX) ! fake bisector of angle at vertex IX
               VY = Y0N(I,IX)
               VZ = Z0N(I,IX)
               NN = ONE/MAX(EM20,SQRT(VX*VX+VY*VY+VZ*VZ))
               PN = ((XH-XX(I,IX))*VX+(YH-YY(I,IX))*VY+(ZH-ZZ(I,IX))*VZ)*NN
-              IF(PN >= GAPS(I).AND.SOLID_CONTACT) FARA(I,IT) =3
+              IF(PN >= GAPS(I).AND.SHELL_CONTACT) FARA(I,IT) =3
             END IF
 
           END IF
@@ -952,7 +921,7 @@ C
 C
           IF(( (MVOISA(I,1) == 0 .AND. D1 >= GAPS(I)).OR.
      .        (MVOISA(I,2) == 0 .AND. D2 >= GAPS(I)).OR.
-     .        (MVOISA(I,4) == 0 .AND. D3 >= GAPS(I))).AND.SOLID_CONTACT )THEN
+     .        (MVOISA(I,4) == 0 .AND. D3 >= GAPS(I))).AND.SHELL_CONTACT )THEN
 C
             FARA(I,IT) =3
 C
@@ -987,14 +956,14 @@ C
               P2 = (XH-XX(I,IX))* VTX_BISECTOR(1,2,IBX)+
      .             (YH-YY(I,IX))* VTX_BISECTOR(2,2,IBX)+
      .             (ZH-ZZ(I,IX))* VTX_BISECTOR(3,2,IBX)
-              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SOLID_CONTACT) FARA(I,IT) =3
+              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SHELL_CONTACT) FARA(I,IT) =3
             ELSE
               VX = TWO*XX(I,IX)-(XX(I,IY)+XX(I,IZ)) ! fake bisector of angle 2,1,3
               VY = TWO*YY(I,IX)-(YY(I,IY)+YY(I,IZ))
               VZ = TWO*ZZ(I,IX)-(ZZ(I,IY)+ZZ(I,IZ))
               NN = ONE/MAX(EM20,SQRT(VX*VX+VY*VY+VZ*VZ))
               PN = ((XH-XX(I,IX))*VX+(YH-YY(I,IX))*VY+(ZH-ZZ(I,IX))*VZ)*NN
-              IF(PN >= GAPS(I).AND.SOLID_CONTACT) FARA(I,IT) =3
+              IF(PN >= GAPS(I).AND.SHELL_CONTACT) FARA(I,IT) =3
             END IF
 C
           END IF
@@ -1067,9 +1036,6 @@ C
 C
        IF(FARA(I,IT)==2 .AND. INTERSECTA(I)==0) PENA(I,IT)=ZERO
        IF(FARA(I,IT)==3) PENA(I,IT)=ZERO
-c        if(itab(ix1(i))==91566.and.itab(ix2(i))==91567.and.itab(ix3(i))==38408.and.itab(ix4(i))==38407.and.itab(nsvg(i))==2502) THEN
-c       write(*,*) 'node 91636 en i25dst22 7',I, itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),it,FARA(I,IT),INGAPA(I,IT) ,PENA(I,IT)
-c       endif
 C
       ENDDO
 C--------------------------------------------------------
@@ -1120,9 +1086,9 @@ C
         ZH=ZI(I)+BB(I,IT)*ZN(I,IT)
 C
         IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
-           SOLID_CONTACT = .FALSE.
+           SHELL_CONTACT = .TRUE.
         ELSE
-           SOLID_CONTACT = .TRUE.
+           SHELL_CONTACT = .FALSE.
         ENDIF
 C
         IF(IX3(I) /= IX4(I))THEN
@@ -1134,7 +1100,7 @@ C         Cone
 C
             IF( (XH-XX(I,I1))* NBX(I,IT)+
      .          (YH-YY(I,I1))* NBY(I,IT)+
-     .          (ZH-ZZ(I,I1))* NBZ(I,IT) >= GAPS(I).AND.SOLID_CONTACT) FARB(I,IT) =3
+     .          (ZH-ZZ(I,I1))* NBZ(I,IT) >= GAPS(I).AND.SHELL_CONTACT) FARB(I,IT) =3
 C
           ELSEIF((IB1 /= 0 .AND. IB2 == 0).OR.
      .           (IB2 /= 0 .AND. IB1 == 0))THEN
@@ -1162,14 +1128,14 @@ C
               P2 = (XH-XX(I,IX))* VTX_BISECTOR(1,2,IBX)+
      .             (YH-YY(I,IX))* VTX_BISECTOR(2,2,IBX)+
      .             (ZH-ZZ(I,IX))* VTX_BISECTOR(3,2,IBX)
-              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SOLID_CONTACT) FARB(I,IT) =3
+              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SHELL_CONTACT) FARB(I,IT) =3
             ELSE
               VX = X0N(I,IX) ! fake bisector of angle at vertex IX
               VY = Y0N(I,IX)
               VZ = Z0N(I,IX)
               NN = ONE/MAX(EM20,SQRT(VX*VX+VY*VY+VZ*VZ))
               PN = ((XH-XX(I,IX))*VX+(YH-YY(I,IX))*VY+(ZH-ZZ(I,IX))*VZ)*NN
-              IF(PN >= GAPS(I).AND.SOLID_CONTACT) FARB(I,IT) =3
+              IF(PN >= GAPS(I).AND.SHELL_CONTACT) FARB(I,IT) =3
             END IF
 
           END IF
@@ -1212,7 +1178,7 @@ C
 C
           IF( ((MVOISB(I,1) == 0 .AND. D1 >= GAPS(I)).OR.
      .        (MVOISB(I,2) == 0 .AND. D2 >= GAPS(I)).OR.
-     .        (MVOISB(I,4) == 0 .AND. D3 >= GAPS(I))).AND.SOLID_CONTACT )THEN
+     .        (MVOISB(I,4) == 0 .AND. D3 >= GAPS(I))).AND.SHELL_CONTACT )THEN
 C
             FARB(I,IT) =3
 C
@@ -1247,14 +1213,14 @@ C
               P2 = (XH-XX(I,IX))* VTX_BISECTOR(1,2,IBX)+
      .             (YH-YY(I,IX))* VTX_BISECTOR(2,2,IBX)+
      .             (ZH-ZZ(I,IX))* VTX_BISECTOR(3,2,IBX)
-              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SOLID_CONTACT) FARB(I,IT) =3
+              IF(P1 >= GAPS(I) .AND. P2 >= GAPS(I).AND.SHELL_CONTACT) FARB(I,IT) =3
             ELSE
               VX = TWO*XX(I,IX)-(XX(I,IY)+XX(I,IZ)) ! fake bisector of angle 2,1,3
               VY = TWO*YY(I,IX)-(YY(I,IY)+YY(I,IZ))
               VZ = TWO*ZZ(I,IX)-(ZZ(I,IY)+ZZ(I,IZ))
               NN = ONE/MAX(EM20,SQRT(VX*VX+VY*VY+VZ*VZ))
               PN = ((XH-XX(I,IX))*VX+(YH-YY(I,IX))*VY+(ZH-ZZ(I,IX))*VZ)*NN
-              IF(PN >= GAPS(I).AND.SOLID_CONTACT) FARB(I,IT) =3
+              IF(PN >= GAPS(I).AND.SHELL_CONTACT) FARB(I,IT) =3
             END IF
 C
           END IF
