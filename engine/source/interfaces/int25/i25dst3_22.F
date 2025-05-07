@@ -49,7 +49,7 @@ Copyright>        commercial version may interest you: https://www.altair.com/ra
      J                  FAR     ,PENT  ,
      L                  SUBTRIA ,LBS   ,LCS     ,LBP    ,LCP   ,
      P                  MVOISA  ,MVOISB,GAPMXL  ,IBOUNDA,IBOUNDB,
-     Q                  VTX_BISECTOR,DRAD,DGAPLOAD)
+     Q                  VTX_BISECTOR,DRAD,DGAPLOAD,ETYP)
 C-----------------------------------------------
 C   M o d u l e s
 C-----------------------------------------------
@@ -89,6 +89,7 @@ C-----------------------------------------------
      .     GAP_NM(4,MVSIZ), GAPMXL(MVSIZ)
       INTEGER IRECT(4,*),ITAB(*),ICONT_I(*), FAR(MVSIZ)
       REAL*4 VTX_BISECTOR(3,2,*)
+      INTEGER  , INTENT(IN)    :: ETYP(MVSIZ)
 C-----------------------------------------------
 C   C o m m o n   B l o c k s
 C-----------------------------------------------
@@ -828,7 +829,7 @@ C
         YH=YI(I)+BB(I,IT)*YN(I,IT)
         ZH=ZI(I)+BB(I,IT)*ZN(I,IT)
 C
-        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+        IF((ETYP(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
            SHELL_CONTACT = .TRUE.
         ELSE
            SHELL_CONTACT = .FALSE.
@@ -1085,7 +1086,7 @@ C
         YH=YI(I)+BB(I,IT)*YN(I,IT)
         ZH=ZI(I)+BB(I,IT)*ZN(I,IT)
 C
-        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+        IF((ETYP(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
            SHELL_CONTACT = .TRUE.
         ELSE
            SHELL_CONTACT = .FALSE.

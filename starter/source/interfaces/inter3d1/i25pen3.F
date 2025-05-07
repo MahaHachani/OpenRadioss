@@ -112,7 +112,6 @@ C-----------------------------------------------
       LOGICAL :: SHELL_CONTACT
 C-----------------------------------------------
       NINDX=0    
-      ISHEL(1:JLT)=0   
       DO I=1,JLT
         L       = CAND_E(I)
         ETYP(I) =MSEGTYP(L)
@@ -126,12 +125,6 @@ C
 C         Computing initial penetrations vs shells except opposite segments to the coating shells
           NINDX=NINDX+1
           INDX(NINDX)=I
-        END IF
-C
-        ISH=MSEGTYP(L)
-        IF(ISH > 0) THEN
-           IF(ISH > NRTM)ISH=ISH-NRTM
-           ISHEL(I)=ISH
         END IF
       END DO
 C-----------------------------------------------
@@ -535,7 +528,7 @@ C       Projection en dehors du triangle
         IF(LB(I,IT) < -EM03 .OR. LC(I,IT) < -EM03 .OR.
      .      LB(I,IT)+LC(I,IT) > ONE+EM03) FAR(I,IT)=1
 C
-        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+        IF((ETYP(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
            SHELL_CONTACT = .TRUE.
         ELSE
            SHELL_CONTACT = .FALSE.
@@ -776,7 +769,7 @@ C
          CYCLE
         ENDIF
 C
-        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+        IF((ETYP(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
            SHELL_CONTACT = .TRUE.
         ELSE
            SHELL_CONTACT = .FALSE.

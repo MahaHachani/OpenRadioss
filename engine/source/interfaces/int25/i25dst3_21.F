@@ -561,7 +561,7 @@ C       Projection en dehors du triangle
         IF(LB(I,IT) < -EM03 .OR. LC(I,IT) < -EM03 .OR.
      .      LB(I,IT)+LC(I,IT) > ONE+EM03) FAR(I,IT)=1
 C
-        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+        IF((ETYP(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
            SHELL_CONTACT = .TRUE.
         ELSE
            SHELL_CONTACT = .FALSE.

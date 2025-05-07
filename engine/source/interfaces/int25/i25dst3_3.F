@@ -39,7 +39,7 @@ Copyright>        commercial version may interest you: https://www.altair.com/ra
      8 PENMIN      ,EPS         ,PENE        ,PENE_OLD    ,SUBTRIA     , 
      9 GAPV        ,IVIS2       ,IF_ADH      ,IFADHI      ,BASE_ADH    ,
      A MVOISN      ,IBOUND      ,VTX_BISECTOR,DIST        ,TIME        ,
-     B ISHEL       )
+     B ETYP       )
 C-----------------------------------------------
 C   M o d u l e s
 C-----------------------------------------------
@@ -75,7 +75,7 @@ C-----------------------------------------------
       REAL*4 VTX_BISECTOR(3,2,*)
       my_real  , INTENT(INOUT) :: DIST(MVSIZ)
       my_real  , INTENT(IN)    :: TIME
-      INTEGER  , INTENT(IN)    :: ISHEL(MVSIZ)
+      INTEGER  , INTENT(IN)    :: ETYP(MVSIZ)
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
@@ -369,7 +369,7 @@ C
         I2=ITRIA(2,IT)
 C
 C
-        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+        IF((ETYP(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
            SHELL_CONTACT = .TRUE.
         ELSE
            SHELL_CONTACT = .FALSE.

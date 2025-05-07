@@ -38,7 +38,7 @@ Copyright>        commercial version may interest you: https://www.altair.com/ra
      9                  ICONT_I,NNX     ,NNY   ,NNZ     ,
      A                  FAR     ,PENT  ,DIST    ,LB    ,LC    ,
      B                  LBP     ,LCP   ,SUBTRIA ,MVOISN,IBOUND,
-     C                  VTX_BISECTOR   ,DRAD    ,DGAPLOAD)
+     C                  VTX_BISECTOR   ,DRAD    ,DGAPLOAD,ETYP)
 C-----------------------------------------------
 C   M o d u l e s
 C-----------------------------------------------
@@ -72,6 +72,7 @@ C-----------------------------------------------
      .     LBP(MVSIZ,4), LCP(MVSIZ,4), GAP_NM(4,MVSIZ), DD(MVSIZ,4)
       INTEGER IRECT(4,*),ITAB(*),ICONT_I(*), FAR(MVSIZ,4)
       REAL*4 VTX_BISECTOR(3,2,*)
+      INTEGER  , INTENT(IN)    :: ETYP(MVSIZ)
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
@@ -113,7 +114,6 @@ C-----------------------------------------------
      .     N1X,N1Y,N1Z,N1N,
      .     N2X,N2Y,N2Z,N2N,
      .     LX, LAX, LBX, LCX, LD(MVSIZ), DMIN
-      INTEGER ISHEL(MVSIZ)
       DATA ITRIA/1,2,2,3,3,4,4,1/,
      .     INEIGH/4,3,2,1,4,3,2,1,4,3,2,1/
       LOGICAL :: SHELL_CONTACT
@@ -354,7 +354,7 @@ C
         YH=YI(I)+BB(I,IT)*YN(I,IT)
         ZH=ZI(I)+BB(I,IT)*ZN(I,IT)
 C
-        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+        IF((ETYP(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
            SHELL_CONTACT = .TRUE.
         ELSE
            SHELL_CONTACT = .FALSE.
@@ -660,7 +660,7 @@ C
         YH=YI(I)+BB(I,IT)*YN(I,IT)
         ZH=ZI(I)+BB(I,IT)*ZN(I,IT)
 C
-        IF((ISHEL(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
+        IF((ETYP(I)/= 0).OR.(GAPS(I)>ZERO)) THEN
            SHELL_CONTACT = .TRUE.
         ELSE
            SHELL_CONTACT = .FALSE.

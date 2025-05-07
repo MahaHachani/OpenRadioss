@@ -38,7 +38,7 @@ Copyright>        commercial version may interest you: https://www.altair.com/ra
      8               NNX     ,NNY    ,NNZ    ,
      9               GAP_M   ,GAPM   ,GAPN_M ,GAPNM ,SUBTRIA     ,
      A               MVOISIN ,MVOISN ,GAP_S_L,GAP_M_L,GAPMXL     ,
-     B               LBOUND  ,IBOUND )
+     B               LBOUND  ,IBOUND ,ETYP  ,MSEGTYP,NRTM       )
 C-----------------------------------------------
 C   M o d u l e s
 C-----------------------------------------------
@@ -54,7 +54,7 @@ C-----------------------------------------------
 C-----------------------------------------------
 C   D u m m y   A r g u m e n t s
 C-----------------------------------------------
-      INTEGER JLT, NSN, NIN, IGAP,
+      INTEGER JLT, NSN, NIN, IGAP,ISH ,
      .        IRECT(4,*), NSV(*), CAND_E(*), CAND_N(*), IRTLM(4,NSN)
       INTEGER IX1(MVSIZ), IX2(MVSIZ), IX3(MVSIZ), IX4(MVSIZ), 
      .        NSVG(MVSIZ), ADMSR(4,*), SUBTRIA(MVSIZ),
@@ -70,6 +70,9 @@ C     REAL
      .   XX(MVSIZ,5), YY(MVSIZ,5), ZZ(MVSIZ,5),
      .   NNX(MVSIZ,5), NNY(MVSIZ,5), NNZ(MVSIZ,5)
       REAL*4 NOD_NORMAL(3,4,*)
+      INTEGER , INTENT(INOUT) ::ETYP(MVSIZ)
+      INTEGER , INTENT(IN) ::MSEGTYP(NRTM)
+      INTEGER , INTENT(IN) ::NRTM
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
@@ -127,6 +130,7 @@ C
         GAPM(I)     =GAP_M(L)
         GAPNM(1:4,I)=GAPN_M(1:4,L)
 C
+        ETYP(I) = MSEGTYP(L)
       END DO
 C
       IF(IGAP/=3)THEN
@@ -275,7 +279,7 @@ C     REAL
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
-      INTEGER I ,J , K, L, NN, IG, JFT, IX,  NI, I1, I2, I3, I4, NOR, II(4)
+      INTEGER I ,J , K, L, NN, IG, JFT, IX,  NI, I1, I2, I3, I4, NOR, II(4),ISH
       my_real
      .        XN
 C-----------------------------------------------
@@ -469,7 +473,7 @@ C
      J               GAP_M   ,GAPM  ,GAPN_M  ,GAPNM  ,
      L               MVOISIN ,NRTM  ,MSEGTYP ,ISHEL  ,
      P               MVOISA  ,MVOISB,GAP_S_L,GAP_M_L,GAPMXL     ,
-     Q               LBOUND  ,IBOUNDA,IBOUNDB)
+     Q               LBOUND  ,IBOUNDA,IBOUNDB,ETYP)
 C-----------------------------------------------
 C   M o d u l e s
 C-----------------------------------------------
@@ -508,6 +512,7 @@ C     REAL
      .   NAX(MVSIZ,5), NAY(MVSIZ,5), NAZ(MVSIZ,5),
      .   NBX(MVSIZ,5), NBY(MVSIZ,5), NBZ(MVSIZ,5)
       REAL*4 NOD_NORMAL(3,4,*)
+      INTEGER  , INTENT(INOUT)    :: ETYP(MVSIZ)
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
@@ -589,6 +594,8 @@ C
           IF(ISH > NRTM)ISH=ISH-NRTM
           ISHEL(I)=ISH
         END IF
+C
+        ETYP(I) = MSEGTYP(L)   
 C
       END DO
 C
@@ -789,7 +796,7 @@ C
      K               Y3        ,Z3    ,X4      ,Y4     ,Z4          ,
      L               INTTH     ,TEMP  ,TEMPI   ,IELES  ,IELESI      ,
      M               IELEM     ,IELEMI,ISTIF_MSDT,DTSTIF,STIFMSDT_S ,
-     N               STIFMSDT_M,NRTM  ,PARAMETERS,ISHEL,MSEGTYP) 
+     N               STIFMSDT_M,NRTM  ,PARAMETERS,ETYP  ,MSEGTYP    ) 
 C-----------------------------------------------
 C   M o d u l e s
 C-----------------------------------------------
@@ -822,7 +829,7 @@ C-----------------------------------------------
       INTEGER , INTENT(IN) :: ISTIF_MSDT
       INTEGER , INTENT(IN) :: NRTM
       INTEGER , INTENT(IN) ::MSEGTYP(NRTM)
-      INTEGER , INTENT(INOUT) ::ISHEL(MVSIZ)
+      INTEGER , INTENT(INOUT) ::ETYP(MVSIZ)
 C     REAL
       my_real
      .   X(3,*), STF(*), STFN(*), MS(*), V(3,*), 
@@ -853,12 +860,11 @@ C     REAL
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
-      INTEGER I ,J , L, NN, IG, JFT, IX,  NI, I1, I2, I3, I4, IT, ISH
+      INTEGER I ,J , L, NN, IG, JFT, IX,  NI, I1, I2, I3, I4, IT
       my_real
      .        XN,DTS,STIF_MSDT(MVSIZ)
 C-----------------------------------------------
       IBOUND(1:4,1:JLT)=0
-      ISHEL(1:JLT)=0
       DO I=1,JLT
            NI = CAND_N(I)
            IF(NI<=NSN)THEN
@@ -949,11 +955,7 @@ C
              IF(LBOUND(ADMSR(J,L))/=0)IBOUND(J,I)=ADMSR(J,L)
            END DO
 C
-           ISH=MSEGTYP(L)
-           IF(ISH > 0) THEN
-             IF(ISH > NRTM)ISH=ISH-NRTM
-             ISHEL(I)=ISH
-           END IF
+           ETYP(I)=MSEGTYP(L)
       END DO
 C
       IF(IGAP/=3)THEN
