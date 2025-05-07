@@ -374,6 +374,8 @@ C
         ELSE
            SHELL_CONTACT = .FALSE.
         ENDIF
+        if(SHELL_CONTACT.eqv..FALSE.)write(*,*) 'SHELL_CONTACT 33',SHELL_CONTACT,GAPS(I),ETYP(I),CAND_E(I),MVOISN(I,1:4),
+     .itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),IT,MVOISN(I,IT),IB1,IB2,GAPV(I),BB(I),PENE(I)
 
         IF(IX3(I)/=IX4(I).AND.SHELL_CONTACT)THEN
 

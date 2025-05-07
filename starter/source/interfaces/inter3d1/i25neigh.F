@@ -174,7 +174,7 @@ C------------ini- E_ids of each node
           END IF
         ENDIF
       END DO
-C------------MVOISIN-(seg number) ---
+C------------s-(seg number) ---
       E_MAX=4
       DO I=1,NRTM
        DO J=1,E_MAX
@@ -356,6 +356,7 @@ C
       DO I=1,NRTM
 C
         II(1:4)=IRECT(1:4,I)
+        if(I==289) write(*,*) 'mvois',itab(irect(1:4,i)),MVOISIN(1:4,i)
 C
         DO IEDG=1,4
 C

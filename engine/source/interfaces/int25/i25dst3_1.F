@@ -359,6 +359,8 @@ C
         ELSE
            SHELL_CONTACT = .FALSE.
         ENDIF
+c        if(SHELL_CONTACT.eqv..FALSE.)write(*,*) 'SHELL_CONTACT 31 1',I,CAND_E(I),SHELL_CONTACT,GAPS(I),ETYP(I),
+c     .itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i))
 C
         IF(IX3(I) /= IX4(I))THEN
 C
@@ -665,6 +667,8 @@ C
         ELSE
            SHELL_CONTACT = .FALSE.
         ENDIF
+c        if(SHELL_CONTACT.eqv..FALSE.)write(*,*) 'SHELL_CONTACT 31 2',SHELL_CONTACT,GAPS(I),ETYP(I),
+c     .itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),IT,MVOISN(I,IT)
 C
         IB1=IBOUND(I1,I)
         IB2=IBOUND(I2,I)
