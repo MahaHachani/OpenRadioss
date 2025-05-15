@@ -902,7 +902,7 @@ C
             LL  = XIJ(I,I1)*XIJ(I,I1)+YIJ(I,I1)*YIJ(I,I1)+ZIJ(I,I1)*ZIJ(I,I1)
 C
             SIDA(I,IT)=-(XIJ(I,I1)*PX+YIJ(I,I1)*PY+ZIJ(I,I1)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))                 
-            IF(SIDA(I,IT) < -ZEP01) FARA(I,IT) =2
+            IF(SIDA(I,IT) < -EM03) FARA(I,IT) =2
 C
           END IF
         ELSE
@@ -988,7 +988,7 @@ C
               LL  = XIJ(I,1)*XIJ(I,1)+YIJ(I,1)*YIJ(I,1)+ZIJ(I,1)*ZIJ(I,1)
 C
               SIDA(I,1)=-(XIJ(I,1)*PX+YIJ(I,1)*PY+ZIJ(I,1)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))             
-              IF(SIDA(I,1) < -ZEP01) FARA(I,IT) =2
+              IF(SIDA(I,1) < -EM03) FARA(I,IT) =2
 C
             END IF
 
@@ -1009,7 +1009,7 @@ C
               LL  = XIJ(I,2)*XIJ(I,2)+YIJ(I,2)*YIJ(I,2)+ZIJ(I,2)*ZIJ(I,2)
 C
               SIDA(I,2)=-(XIJ(I,2)*PX+YIJ(I,2)*PY+ZIJ(I,2)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))             
-              IF(SIDA(I,2) < -ZEP01) FARA(I,IT) =2
+              IF(SIDA(I,2) < -EM03) FARA(I,IT) =2
 C
             END IF
 
@@ -1029,7 +1029,7 @@ C
               LL  =  XIJ(I,3)*XIJ(I,3)+YIJ(I,3)*YIJ(I,3)+ZIJ(I,3)*ZIJ(I,3)
 C
               SIDA(I,4)=-(XIJ(I,3)*PX+YIJ(I,3)*PY+ZIJ(I,3)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))             
-              IF(SIDA(I,4) < -ZEP01) FARA(I,IT) =2
+              IF(SIDA(I,4) < -EM03) FARA(I,IT) =2
 C
             END IF
           END IF
@@ -1159,7 +1159,7 @@ C
             LL  = XIJ(I,I1)*XIJ(I,I1)+YIJ(I,I1)*YIJ(I,I1)+ZIJ(I,I1)*ZIJ(I,I1)
 C
             SIDB(I,IT)= (XIJ(I,I1)*PX+YIJ(I,I1)*PY+ZIJ(I,I1)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))                 
-            IF(SIDB(I,IT) < -ZEP01) FARB(I,IT) =2
+            IF(SIDB(I,IT) < -EM03) FARB(I,IT) =2
 C
           END IF
         ELSE
@@ -1245,7 +1245,7 @@ C
               LL  = XIJ(I,1)*XIJ(I,1)+YIJ(I,1)*YIJ(I,1)+ZIJ(I,1)*ZIJ(I,1)
 C
               SIDB(I,1)= (XIJ(I,1)*PX+YIJ(I,1)*PY+ZIJ(I,1)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))             
-              IF(SIDB(I,1) < -ZEP01) FARB(I,IT) =2
+              IF(SIDB(I,1) < -EM03) FARB(I,IT) =2
 C
             END IF
 
@@ -1264,7 +1264,7 @@ C
               LL  = XIJ(I,2)*XIJ(I,2)+YIJ(I,2)*YIJ(I,2)+ZIJ(I,2)*ZIJ(I,2)
 C
               SIDB(I,2)= (XIJ(I,2)*PX+YIJ(I,2)*PY+ZIJ(I,2)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))             
-              IF(SIDB(I,2) < -ZEP01) FARB(I,IT) =2
+              IF(SIDB(I,2) < -EM03) FARB(I,IT) =2
 C
             END IF
 
@@ -1283,7 +1283,7 @@ C
               LL  =  XIJ(I,3)*XIJ(I,3)+YIJ(I,3)*YIJ(I,3)+ZIJ(I,3)*ZIJ(I,3)
 C
               SIDB(I,4)= (XIJ(I,3)*PX+YIJ(I,3)*PY+ZIJ(I,3)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))             
-              IF(SIDB(I,4) < -ZEP01) FARB(I,IT) =2
+              IF(SIDB(I,4) < -EM03) FARB(I,IT) =2
 C
             END IF
           END IF
@@ -1363,6 +1363,11 @@ c     .      bb(i,1:4),dd(i,1:4)
 C            
 C           PENE_OLD(5,N)=PENE 
           END IF
+
+       if(itab(nsvg(i))== 58116.and.
+     .       itab(ix1(i))==104635.and.itab(ix2(i))==104602.and.itab(ix3(i))==110603.and.itab(ix4(i))==110556)
+     .write(*,*) 'SHELL_CONTACT 22',SHELL_CONTACT,GAPS(I),ETYP(I),CAND_E(I),
+     .itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i))
 c      if(itab(nsvg(i))==27363)then
 cc      if(itab(nsvg(i))==27952.or.
 cc     .       itab(ix1(i))==27952.or.itab(ix2(i))==27952.or.itab(ix3(i))==27952.or.itab(ix4(i))==27952)then

@@ -52,6 +52,7 @@ C   G l o b a l   P a r a m e t e r s
 C-----------------------------------------------
 #include      "mvsiz_p.inc"
 #include      "comlock.inc"
+#include      "com01_c.inc"
 C-----------------------------------------------
 C   D u m m y   A r g u m e n t s
 C-----------------------------------------------
@@ -359,8 +360,6 @@ C
         ELSE
            SHELL_CONTACT = .FALSE.
         ENDIF
-c        if(SHELL_CONTACT.eqv..FALSE.)write(*,*) 'SHELL_CONTACT 31 1',I,CAND_E(I),SHELL_CONTACT,GAPS(I),ETYP(I),
-c     .itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i))
 C
         IF(IX3(I) /= IX4(I))THEN
 C
@@ -425,7 +424,7 @@ C
             SIDE(I,IT)=-(XIJ(I,I1)*PX+YIJ(I,I1)*PY+ZIJ(I,I1)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))      
 C
 C           Projette a l'exterieur et Hors secteur angulaire (cf bissectrices) <=> Glissement
-            IF(SIDE(I,IT) < -ZEP01) FAR(I,IT) =2
+            IF(SIDE(I,IT) < -EM03) FAR(I,IT) =2
 C
           END IF
           IF(FAR(I,IT)==2) PENT(I,IT)=ZERO
@@ -515,7 +514,7 @@ C
               LL = XI1(I)*XI1(I)+YI1(I)*YI1(I)+ZI1(I)*ZI1(I)
 C
               SIDE(I,1)=-(XI1(I)*PX+YI1(I)*PY+ZI1(I)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))   
-              IF(SIDE(I,1) < -ZEP01) FAR(I,1)=2
+              IF(SIDE(I,1) < -EM03) FAR(I,1)=2
 C          
             END IF
 C
@@ -537,7 +536,7 @@ C
               LL     = XI1(I)*XI1(I)+YI1(I)*YI1(I)+ZI1(I)*ZI1(I)
 C
               SIDE(I,2)=-(XI1(I)*PX+YI1(I)*PY+ZI1(I)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))   
-              IF(SIDE(I,2) < -ZEP01) FAR(I,2)=2
+              IF(SIDE(I,2) < -EM03) FAR(I,2)=2
 C          
             END IF
 C
@@ -559,7 +558,7 @@ C
               LL     = XI1(I)*XI1(I)+YI1(I)*YI1(I)+ZI1(I)*ZI1(I)
 C
               SIDE(I,4)=-(XI1(I)*PX+YI1(I)*PY+ZI1(I)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))   
-              IF(SIDE(I,4) < -ZEP01) FAR(I,3)=2
+              IF(SIDE(I,4) < -EM03) FAR(I,3)=2
 C          
             END IF
 C          
@@ -667,8 +666,6 @@ C
         ELSE
            SHELL_CONTACT = .FALSE.
         ENDIF
-c        if(SHELL_CONTACT.eqv..FALSE.)write(*,*) 'SHELL_CONTACT 31 2',SHELL_CONTACT,GAPS(I),ETYP(I),
-c     .itab(nsvg(i)),itab(ix1(i)),itab(ix2(i)),itab(ix3(i)),itab(ix4(i)),IT,MVOISN(I,IT)
 C
         IB1=IBOUND(I1,I)
         IB2=IBOUND(I2,I)
@@ -730,10 +727,8 @@ C
          LL  = XIJ(I,I1)*XIJ(I,I1)+YIJ(I,I1)*YIJ(I,I1)+ZIJ(I,I1)*ZIJ(I,I1)
 C
          SIDE(I,IT)=-(XIJ(I,I1)*PX+YIJ(I,I1)*PY+ZIJ(I,I1)*PZ)*SQRT(ONE/MAX(EM30,LL*PP))           
-         IF(SIDE(I,IT) < -ZEP01) FAR(I,IT) =2
-C
-        END IF
-
+         IF(SIDE(I,IT) < -EM03) FAR(I,IT) =2
+        ENDIF
 C
         IF(FAR(I,IT)==2) PENT(I,IT)=ZERO
 C
