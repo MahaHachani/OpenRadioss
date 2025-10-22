@@ -239,7 +239,7 @@ C
 
       VMAX = ZERO
       DO I=1,JLT
-        GAPV(I) = ZEP9*GAPV(I)
+c        GAPV(I) = ZEP9*GAPV(I)
         VX(I) = HS1(I)*VXS1(I) + HS2(I)*VXS2(I)
      .        - HM1(I)*VXM1(I) - HM2(I)*VXM2(I)
         VY(I) = HS1(I)*VYS1(I) + HS2(I)*VYS2(I)
