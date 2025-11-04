@@ -48,6 +48,7 @@ C-----------------------------------------------
 C   C o m m o n   B l o c k s
 C-----------------------------------------------
 #include      "chara_c.inc"
+#include      "task_c.inc"
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
@@ -65,6 +66,7 @@ C     is not allowed in SPMD.
 C     => A modify if this option should be supported in SPMD ../ ..
 C----------------------------------------------
 C Run argument parameters
+       write(*,*) 'radioss0',ispmd
       CALL FILE_INIT()       ! Initialize C FILE buffer for IEEE writing
 
 C 

@@ -2748,6 +2748,7 @@ C X, D, V, VR, DR
 C--------------------------------------------
 
 C--------------------------------------------
+       write(*,*) 'NUMNOD_L',NUMNOD_L
       CALL W_R3NLOC(X,NODGLOB,NUMNOD_L,LEN_AM)
       IF(IALE+IEULER+GLOB_THERM%ITHERM+IALELAG > 0)
      .  CALL W_BID(3*NRCVVOIS,LEN_AM)

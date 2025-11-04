@@ -389,8 +389,9 @@ c (no need to communicate VMAXDT in SPMD)
          DIST0 = MARGE0 - ONEP01*(D0 + VMAXDT + MAXDGAP(I))
 
          INTBUF_TAB(I)%VARIABLES(5) = DIST0
+c        write(*,*) ' xs ',i,DIST0,TZINFL,GAPSUP, MARGE0,D0,VMAXDT,MAXDGAP(I)
 
-
+        write(*,*) ' distance',i,DIST0,TZINFL,GAPSUP, MARGE0,D0,VMAXDT,MAXDGAP(I)
 
          IF(VMAXDT > TWO * MARGE0) THEN
            ! assuming that MARGE0 is identical on all processors
@@ -506,6 +507,8 @@ C
          END IF
 C
          DIST0 = INTBUF_TAB(I)%VARIABLES(5) - SQRT(XX**2+XY**2+XZ**2)
+
+         write(*,*) ' distance',i,  DIST0,TZINFL,GAPSUP,SQRT(XX**2+XY**2+XZ**2)
 C
 C test on timestep on the interface
 C

@@ -332,6 +332,8 @@ C In that case, we assume that the segment on the
 C other side of the boundary is not broken
            S = ONE
 C          S = ZERO
+         ELSEIF(L==0.AND.LEDGE(7,CAND_S(I))==3)THEN
+           S = STFE(CAND_S(I))
          ENDIF
 
 #ifdef WITH_ASSERT

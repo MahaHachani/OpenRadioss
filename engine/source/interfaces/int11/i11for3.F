@@ -173,6 +173,7 @@ C
         NX(I) = NX(I)*S2
         NY(I) = NY(I)*S2
         NZ(I) = NZ(I)*S2
+       write(*,*) 'dst ', i,CS_LOC(I),CM_LOC(I),GAPV(I),s2,pene(i)
       ENDDO
 C
       IF(INACTI==5)THEN

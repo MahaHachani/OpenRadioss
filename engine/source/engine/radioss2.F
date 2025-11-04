@@ -371,6 +371,7 @@ C------------------------------------------------------------------
 C------------------------------------------------
 C     Init Timer (from beginning of radioss2 (reading timer)
 C------------------------------------------------    
+       write(*,*) 'radioss2',ispmd
       ISTDO=6
       CALL INI_MSG()
       CALL BUILD_MSG()
@@ -1061,9 +1062,10 @@ C
      .            RWALL          ,SFEM      )
       ! Close restart file
        CALL CLOSE_C
- 
+             write(*,*) 'ap rdresb radioss',ispmd
        ! --------------------------------------------------------------------------------------------
       IF (NSPMD > 1)  CALL SPMD_RST_CHECK()
+             write(*,*) 'ap SPMD_RST_CHECK '
 c----------
       NSPROC=1
 C----------

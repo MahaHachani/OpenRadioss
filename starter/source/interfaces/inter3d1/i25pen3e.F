@@ -177,6 +177,8 @@ C!!!!!!!!!!!!!!!!!!!!!!!!
        NN(I) = SQRT(NX(I)**2 + NY(I)**2 + NZ(I)**2)
 
        PENE(I) = MAX(ZERO,GAPVE(I) - NN(I))
+c       write(*,*) 'pene',i,CAND_S(I),CAND_M(I),XXS1(I),XYS1(I),XZS1(I),XXS2(I),
+c     . XYS2(I),XZS2(I),XXM1(I),XYM1(I),XZM1(I),XXM2(I),XYM2(I),XZM2(I)
 
       ENDDO
 C
@@ -198,11 +200,11 @@ C                                \
 C                                  \      
 
           P1=ZERO
-          IF(LEDGE(3,CAND_M(I))==0)
+          IF(LEDGE(3,CAND_M(I))==0.AND.LEDGE(7,CAND_M(I))/=3)
      .      P1=-(NX(I)*EX(I)+NY(I)*EY(I)+NZ(I)*EZ(I)) ! (n(M),SM) > 45 degrees
 
           P2=ZERO
-          IF(LEDGE(3,CAND_S(I))==0)
+          IF(LEDGE(3,CAND_S(I))==0.AND.LEDGE(7,CAND_S(I))/=3)
      .      P2=  NX(I)*FX(I)+NY(I)*FY(I)+NZ(I)*FZ(I)  ! (n(S),MS) > 45 degrees
 
 C         NN(I)=SQRT(NN(I)) ! already done above

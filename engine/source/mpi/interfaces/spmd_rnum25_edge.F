@@ -39,6 +39,7 @@ C   I m p l i c i t   T y p e s
 C-----------------------------------------------
 #include      "implicit_f.inc"
 #include      "i25edge_c.inc"
+#include      "task_c.inc"
 C-----------------------------------------------
 C   C o m m o n   B l o c k s
 C-----------------------------------------------
@@ -65,7 +66,7 @@ C-----------------------------------------------
       DO I = 1, N_REMOTE_OLD
         RENUM_EDGE(I) = -1
       END DO
-
+         if(ncycle==0.and.ispmd==0) write(*,*) 'renum N_REMOTE_OLD',ispmd,ncycle,N_REMOTE_OLD
 
       ALLOCATE(OLDNUM_EDGE(NEDGE_REMOTE))
       DO I = 1, NEDGE_REMOTE
@@ -80,7 +81,9 @@ C-----------------------------------------------
       DO P = 1, NSPMD
         I = 1
         J = 1
+
         DO WHILE (J<=NSNFIE(NIN)%P(P).AND.I<=NSNFIEOLD(P))
+         if(ncycle==0.and.ispmd==0) write(*,*) 'renum NSNFIE',ispmd,ncycle,P,I,J,NSNFIE(NIN)%P(P),NSNFIEOLD(P),IREM_EDGE(E_LOCAL_ID,J+JDEB),NSVFIE(NIN)%P(I+IDEB)
 
           IF(IREM_EDGE(E_LOCAL_ID,J+JDEB)==
      +       NSVFIE(NIN)%P(I+IDEB)) THEN
@@ -117,8 +120,10 @@ C
       DO I = 1, ISTOK_E2E
         NI = CAND_E2E(I)
         IF(NI>NEDGE) THEN
+         if(ncycle==0.and.ispmd==0) write(*,*) 'renum 1',ispmd,ncycle,i,ISTOK_E2E,ni,nedge
           NI = NI - NEDGE 
           CAND_E2E(I) = RENUM_EDGE(NI) + NEDGE
+         if(ncycle==0.and.ispmd==0) write(*,*) 'renum 2',ispmd,ncycle,ni,nedge,RENUM_EDGE(NI),CAND_E2E(I)
         END IF        
       END DO
 

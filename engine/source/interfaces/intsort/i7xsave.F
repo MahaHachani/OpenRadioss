@@ -36,7 +36,9 @@ C  |         I24MAIN_TRI                       /intsort/i24main_tri.F
      2       ITASK ,XSAV ,XMIN  ,YMIN  ,ZMIN    ,
      3       XMAX  ,YMAX ,ZMAX  ,C_MAX ,CURV_MAX,
      4       ICURV ,IRECT,NRTM_T,SX    ,SY      ,
-     5       SZ    ,SX2  ,SY2   ,SZ2   ,NMN_L)
+     5       SZ    ,SX2  ,SY2   ,SZ2   ,NMN_L   ,
+     6       LEDGE ,NEDGE ,NELDGE,NEDGE_1D,NMN_1D,
+     7       MSR_1D)
 C save XSAV and calculate domain bounds
 C-----------------------------------------------
 C   I m p l i c i t   T y p e s
@@ -54,15 +56,18 @@ C-----------------------------------------------
 C   D u m m y   A r g u m e n t s
 C-----------------------------------------------
       INTEGER NSN,NMN,ITASK, ICURV, NRTM_T,
-     .        NSV(*),MSR(*), IRECT(4,*),NMN_L
+     .        NSV(*),MSR(*), IRECT(4,*),NMN_L,NMN_1D
       my_real
      .        XMAX, YMAX, ZMAX, XMIN, YMIN, ZMIN, C_MAX,
      .        SX, SY, SZ, SX2, SY2, SZ2,
      .        X(3,*), XSAV(3,*), CURV_MAX(*)
+      INTEGER, INTENT(IN) :: NEDGE_1D,NEDGE ,NELDGE
+      INTEGER, INTENT(IN) :: LEDGE(NELDGE,NEDGE)
+      INTEGER, INTENT(IN) :: MSR_1D(NMN_1D)
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
-      INTEGER NSNF,NMNF,NSNL,NMNL,I, J, II
+      INTEGER NSNF,NMNF,NSNL,NMNL,I, J, II,N1,N2,NMN_1DF,NMN_1DL
       my_real
      .        XXX, YYY, ZZZ 
       INTEGER :: INCONV_L
@@ -74,6 +79,8 @@ C
       NSNL=(ITASK+1)*NSN/NTHREAD
       NMNF=1+ITASK*NMN/NTHREAD
       NMNL=(ITASK+1)*NMN/NTHREAD
+      NMN_1DF = 1 + ITASK*NMN_1D / NTHREAD
+      NMN_1DL = (ITASK+1)*NMN_1D / NTHREAD
 C
       XMIN=EP30
       XMAX=-EP30
@@ -91,7 +98,7 @@ C
       NMN_L = 0
 C      
       INCONV_L = INCONV
-      IF(NSN+NMN < NUMNOD+NUMFAKENODIGEO)THEN
+      IF(NSN+NMN+NMN_1D < NUMNOD+NUMFAKENODIGEO)THEN
         IF(INCONV_L == 1) THEN
           DO I=NSNF,NSNL
             J=NSV(I)
@@ -125,6 +132,31 @@ C msr < 0 <=> shooting nodes
             SY2=SY2+X(2,J)**2
             SZ2=SZ2+X(3,J)**2
             NMN_L= NMN_L + 1
+          ENDIF
+        END DO
+
+        DO I=NMN_1DF,NMN_1DL
+          II = I+NSN+NMN
+          J=MSR_1D(I)
+C msr < 0 <=> shooting nodes
+          IF(J>0) THEN 
+            XMIN= MIN(XMIN,X(1,J))
+            YMIN= MIN(YMIN,X(2,J))
+            ZMIN= MIN(ZMIN,X(3,J))
+            XMAX= MAX(XMAX,X(1,J))
+            YMAX= MAX(YMAX,X(2,J))
+            ZMAX= MAX(ZMAX,X(3,J))
+            IF (INCONV_L==1) THEN
+              XSAV(1,II)=X(1,J)
+              XSAV(2,II)=X(2,J)
+              XSAV(3,II)=X(3,J)
+            END IF
+            SX=SX+X(1,J)
+            SY=SY+X(2,J)
+            SZ=SZ+X(3,J)
+            SX2=SX2+X(1,J)**2
+            SY2=SY2+X(2,J)**2
+            SZ2=SZ2+X(3,J)**2
           ENDIF
         END DO
       ELSE
@@ -163,6 +195,32 @@ C msr < 0 <=> shooting nodes
             NMN_L= NMN_L + 1
           END IF
         END DO
+
+        DO I=NMN_1DF,NMN_1DL
+          II = I+NSN+NMN
+          J=MSR_1D(I)
+C msr < 0 <=> shooting nodes
+          IF(J>0) THEN 
+            XMIN= MIN(XMIN,X(1,J))
+            YMIN= MIN(YMIN,X(2,J))
+            ZMIN= MIN(ZMIN,X(3,J))
+            XMAX= MAX(XMAX,X(1,J))
+            YMAX= MAX(YMAX,X(2,J))
+            ZMAX= MAX(ZMAX,X(3,J))
+            IF (INCONV_L==1) THEN
+              XSAV(1,II)=X(1,J)
+              XSAV(2,II)=X(2,J)
+              XSAV(3,II)=X(3,J)
+            END IF
+            SX=SX+X(1,J)
+            SY=SY+X(2,J)
+            SZ=SZ+X(3,J)
+            SX2=SX2+X(1,J)**2
+            SY2=SY2+X(2,J)**2
+            SZ2=SZ2+X(3,J)**2
+          ENDIF
+        END DO
+
       ENDIF
 C
       C_MAX = ZERO
@@ -186,6 +244,54 @@ C
       ELSE
         DO I=1,NRTM_T
           CURV_MAX(I)=ZERO
+        ENDDO
+      ENDIF
+C
+      IF(NEDGE_1D > 0) THEN
+        DO I=1,NEDGE
+           IF(LEDGE(7,I) == 3) THEN
+            N1 = LEDGE(5,I)
+            N2 = LEDGE(6,I)
+            XMAX= MAX(XMAX,X(1,N1))
+            YMAX= MAX(YMAX,X(2,N1))
+            ZMAX= MAX(ZMAX,X(3,N1))
+
+            XMIN= MIN(XMIN,X(1,N1))
+            YMIN= MIN(YMIN,X(2,N1))
+            ZMIN= MIN(ZMIN,X(3,N1))
+
+            XMAX= MAX(XMAX,X(1,N2))
+            YMAX= MAX(YMAX,X(2,N2))
+            ZMAX= MAX(ZMAX,X(3,N2))
+
+            XMIN= MIN(XMIN,X(1,N2))
+            YMIN= MIN(YMIN,X(2,N2))
+            ZMIN= MIN(ZMIN,X(3,N2))
+
+            SX=SX+X(1,N1)
+            SY=SY+X(2,N1)
+            SZ=SZ+X(3,N1)
+            SX2=SX2+X(1,N1)**2
+            SY2=SY2+X(2,N1)**2
+            SZ2=SZ2+X(3,N1)**2
+
+            SX=SX+X(1,N2)
+            SY=SY+X(2,N2)
+            SZ=SZ+X(3,N2)
+            SX2=SX2+X(1,N2)**2
+            SY2=SY2+X(2,N2)**2
+            SZ2=SZ2+X(3,N2)**2
+
+c            IF (INCONV_L==1) THEN
+c              XSAV(1,N1)=X(1,N1)
+c              XSAV(2,N1)=X(2,N1)
+c              XSAV(3,N1)=X(3,N1)
+
+c              XSAV(1,N2)=X(1,N2)
+c              XSAV(2,N2)=X(2,N2)
+c              XSAV(3,N2)=X(3,N2)
+c            END IF
+           ENDIF 
         ENDDO
       ENDIF
 C

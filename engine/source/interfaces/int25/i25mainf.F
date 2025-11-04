@@ -588,6 +588,7 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C     Forces computation
 C-----------------------------------------------------------------------
+c       if(I_STOK/=0)  write(*,*)' I_STOK N2S',I_STOK
       DO NFT = 0 , I_STOK - 1 , NVSIZ
           JLT = MIN( NVSIZ, I_STOK - NFT )
 C preparation CANDIDATES retenus
@@ -860,6 +861,7 @@ C
           ALLOCATE(FSAVPARIT(0,0,0))
         ENDIF
 C
+c         if(I_STOK/=0)   write(*,*)' I_STOK e2e',I_STOK
         DO NFT = 0 , I_STOK - 1 , NVSIZ
           JLT = MIN( NVSIZ, I_STOK - NFT )
 C         preparation CANDIDATES retenus
@@ -906,7 +908,7 @@ C         preparation CANDIDATES retenus
      .                                      INTBUF_TAB%CAND_P,
      E      IAM   ,JAM    ,IBM    ,JBM   ,IAS   ,
      F      JAS   ,IBS    ,JBS    ,ITAB  ,EDGE_ID,
-     G      DGAPLOADPMAX)
+     G      DGAPLOADPMAX,TYPEDGS,nedge,nin)
 
 C
           IF (IMONM > 0 .AND. JTASK == 1) CALL STARTIME(TIMERS,20)

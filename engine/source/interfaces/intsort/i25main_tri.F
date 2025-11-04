@@ -137,11 +137,17 @@ C     REAL
       my_real, dimension(:), allocatable :: CURV_MAX
       INTEGER :: NMN,NRTM,NSN,NTY
       logical :: need_computation
+      INTEGER, DIMENSION(:),ALLOCATABLE  :: IRECTM_C ! irectm part
+      INTEGER, DIMENSION(:),ALLOCATABLE  :: KREMNODE_C ! irectm part
+      my_real, DIMENSION(:),ALLOCATABLE  :: STFM_C ! irectm part
+      my_real, DIMENSION(:),ALLOCATABLE  :: GAP_M_C ! irectm part
+      my_real, DIMENSION(:),ALLOCATABLE  :: GAP_ML_C ! irectm part
 C-----------------------------------------------
       ! --------------
       ! check if the current interface needs to be sorted
       call check_sorting_criteria( need_computation,nin,npari,nspmd,  
      .                             itask,ipari(1,nin),tt,intbuf_tab )
+       write(*,*) 'need_computation',need_computation
       if( .not.need_computation ) return
       allocate(curv_max(nrtm_t)     )
       ! --------------
@@ -188,6 +194,7 @@ C
       PMAX_GAP=INTBUF_TAB%VARIABLES(pmax_index)
       VMAXDT  =INTBUF_TAB%VARIABLES(vmaxdt_index)
 C
+c          if(ncycle==0) WRITE( *,*) "VMAXDT",ispmd,VMAXDT
       DRAD = ZERO
       IF(IPARI(47,NIN) > 0)  DRAD =INTBUF_TAB%VARIABLES(drad_index)
 C
@@ -198,10 +205,19 @@ C
 C -------------------------------------------------------------
 C
       RETRI = 1
+c      do i=1,INTBUF_TAB%I_STOK_E(1)
+
+
+c         if(ncycle==0.and.ispmd==0) write(*,*) 'stok 0 i25maintri',ispmd,ncycle,INTBUF_TAB%CANDM_E2E(i),INTBUF_TAB%CANDS_E2E(i)
+c            if(ncycle<=1.and.(MM1==590.and.MM2==594)) write(*,*) 'itab 590-594 trivox II stokc',
+c     .  ispmd,ncycle,i,II_STOK,jj,CANDM_E2E(i),ss1,ss2,mm1,mm2
+c       enddo
+
 C
 C -------------------------------------------------------------
 C
       MARGE  = INTBUF_TAB%VARIABLES(marge_index)
+      write(*,*) 'marge maintri',marge
 C
 C -------------------------------------------------------------
 C
@@ -217,6 +233,28 @@ C
         INTBUF_TAB%I_STOK(1) = 0
         IF(IEDGE /= 0) ALLOCATE(NSNFIEOLD(NSPMD))
       END IF
+      IF(NRTM >0) THEN
+        ALLOCATE(IRECTM_C(4*NRTM_T))
+         IRECTM_C(1:4*NRTM_T)=INTBUF_TAB%IRECTM(1+4*SSHIFT:4*SSHIFT+4*NRTM_T)
+        ALLOCATE(STFM_C(NRTM_T))
+         STFM_C(1:NRTM_T)=INTBUF_TAB%STFM(1+SSHIFT:SSHIFT+NRTM_T)
+        ALLOCATE(GAP_M_C(NRTM_T))
+         GAP_M_C(1:NRTM_T)=INTBUF_TAB%GAP_M(1+SSHIFT:SSHIFT+NRTM_T)
+         IF(IGAP==3) THEN
+        ALLOCATE(GAP_ML_C(NRTM_T))
+         GAP_ML_C(1:NRTM_T)=INTBUF_TAB%GAP_ML(1+SSHIFT:SSHIFT+NRTM_T)
+         ENDIF
+         IF (FLAGREMN == 2 ) THEN
+        ALLOCATE(KREMNODE_C(2*(NRTM_T+1)))
+            
+         KREMNODE_C(1:2*(NRTM_T+1))=INTBUF_TAB%KREMNODE(1+2*SSHIFT:2*SSHIFT+2*(NRTM_T+1))
+         ENDIF
+      ELSE
+        ALLOCATE(IRECTM_C(0))
+        ALLOCATE(STFM_C(0))
+        ALLOCATE(GAP_M_C(0))
+        ALLOCATE(GAP_ML_C(0))
+      ENDIF 
 C
 C wait bminma [and cur_max_max]
 C
@@ -261,16 +299,25 @@ C
             INTBUF_TAB%I_STOK_E(2) = 0
           ENDIF
       ENDIF
+c      do i=1,INTBUF_TAB%I_STOK_E(1)
+
+
+c         if(ncycle==0.and.ispmd==0) write(*,*) 'stok 0 i25maintri second',ispmd,ncycle,INTBUF_TAB%CANDM_E2E(i),INTBUF_TAB%CANDS_E2E(i)
+c            if(ncycle<=1.and.(MM1==590.and.MM2==594)) write(*,*) 'itab 590-594 trivox II stokc',
+c     .  ispmd,ncycle,i,II_STOK,jj,CANDM_E2E(i),ss1,ss2,mm1,mm2
+c       enddo
 C -------------------------------------------------------------
 C     Bounds of the domains                                         
 C -------------------------------------------------------------
-      
+     
       CALL I7XSAVE(
      1       X            ,INTBUF_TAB%NSV,INTBUF_TAB%MSR,NSN ,NMN     ,
      2       ITASK        ,INTBUF_TAB%XSAV,XMINL      ,YMINL ,ZMINL   ,
      3       XMAXL        ,YMAXL        ,ZMAXL        ,C_MAXL,CURV_MAX,
-     4       IPARI(39,NIN),INTBUF_TAB%IRECTM(1+4*SSHIFT),NRTM_T       ,SX    ,SY      ,
-     5       SZ           ,SX2          ,SY2          ,SZ2            ,NMN_L)
+     4       IPARI(39,NIN),IRECTM_C     ,NRTM_T       ,SX    ,SY      ,
+     5       SZ           ,SX2          ,SY2          ,SZ2            ,NMN_L,
+     6       INTBUF_TAB%LEDGE,NEDGE        ,NLEDGE       ,IPARI(101,NIN),
+     7       IPARI(104,NIN),INTBUF_TAB%MSR_1D)
 C ITHK == 1 : main gap should be updated with change in thickness
       IF(ITHK == 1) THEN
         CALL I25GAPMSAVE(
@@ -289,6 +336,9 @@ C
       NMN_G = NMN_G + NMN_L
       RESULT = 0
 #include "lockoff.inc"
+          if(ncycle==0) WRITE( *,*) "vmax",ispmd,VMAXDT
+          if(ncycle==0.and.ispmd==2) WRITE( *,*) "bmina 25main 1",ispmd,BMINMA(1:6)
+          if(ncycle==0.and.ispmd==0) WRITE( *,*) "bmina 25main 1",ispmd,BMINMA(1:6)
 
 C BARRIER II_STOK, II_STOK_E et RESULT
       CALL MY_BARRIER
@@ -327,6 +377,8 @@ C
         NSNR = 0
 
       END IF
+          if(ncycle==0.and.ispmd==2) WRITE( *,*) "bmina 25main 2",ispmd,BMINMA(1:6)
+          if(ncycle==0.and.ispmd==0) WRITE( *,*) "bmina 25main 2",ispmd,BMINMA(1:6)
 
       IF(NSPMD > 1) THEN
 
@@ -340,8 +392,8 @@ C
         BGAPEMX=INTBUF_TAB%VARIABLES(bgapemx_index)
 
         CALL SPMD_TRI25VOX0(
-     1      X           ,BMINMA  ,NRTM_T,INTBUF_TAB%STFM(1+SSHIFT),MARGE ,
-     2      CURV_MAX,INTBUF_TAB%GAP_M(1+SSHIFT),INTBUF_TAB%IRECTM(1+4*SSHIFT),GAP,
+     1      X           ,BMINMA  ,NRTM_T,STFM_C      ,MARGE ,
+     2      CURV_MAX,GAP_M_C,IRECTM_C,GAP,
      +                                                    INTBUF_TAB%VARIABLES(bgapsmx_index),
      3      PMAX_GAP,VMAXDT,BGAPEMX,IEDGE,
      .      INTBUF_TAB%LEDGE,NEDGE,NLEDGE,
@@ -359,6 +411,8 @@ C
         IF (IMONM > 0 .AND. ITASK == 0) CALL STOPTIME(TIMERS,26)
 
         IF(ITASK==0)THEN
+          if(ncycle==0.and.ispmd==2) WRITE( *,*) "bmina 25main 3",ispmd,BMINMA(1:6)
+          if(ncycle==0.and.ispmd==0) WRITE( *,*) "bmina 25main 3",ispmd,BMINMA(1:6)
 
 C
 C Get Remote Nodes in Xrem/Irem
@@ -385,6 +439,13 @@ C
      .                                                                     INTBUF_TAB%STIFMSDT_EDG,
      F      IFSUB_CAREA     ,PARAMETERS%INTAREAN)
             IF(IMONM > 0) CALL STOPTIME(TIMERS,25)
+c       do i=1,INTBUF_TAB%I_STOK_E(1)
+
+
+c         if(ncycle==0.and.ispmd==0) write(*,*) 'stok 0 i25maintri third',ispmd,ncycle,INTBUF_TAB%CANDM_E2E(i),INTBUF_TAB%CANDS_E2E(i)
+c            if(ncycle<=1.and.(MM1==590.and.MM2==594)) write(*,*) 'itab 590-594 trivox II stokc',
+c     .  ispmd,ncycle,i,II_STOK,jj,CANDM_E2E(i),ss1,ss2,mm1,mm2
+c       enddo
 
 C local renumbering of old candidates to collision
           CALL SPMD_RNUM25(
@@ -393,6 +454,14 @@ C local renumbering of old candidates to collision
             CALL SPMD_RNUM25_EDGE(NIN,NEDGE,INTBUF_TAB%CANDS_E2E,INTBUF_TAB%I_STOK_E(1),
      .       INTBUF_TAB%CANDS_E2S,INTBUF_TAB%I_STOK_E(2))
           END IF
+
+c      do i=1,INTBUF_TAB%I_STOK_E(1)
+
+
+c         if(ncycle==0.and.ispmd==0) write(*,*) 'stok 0 i25maintri fourth',ispmd,ncycle,INTBUF_TAB%CANDM_E2E(i),INTBUF_TAB%CANDS_E2E(i)
+c            if(ncycle<=1.and.(MM1==590.and.MM2==594)) write(*,*) 'itab 590-594 trivox II stokc',
+c     .  ispmd,ncycle,i,II_STOK,jj,CANDM_E2E(i),ss1,ss2,mm1,mm2
+c       enddo
 
           IF(ALLOCATED(CRVOXEL25)) DEALLOCATE(CRVOXEL25)
       END IF
@@ -412,17 +481,17 @@ C     NCONT additional candidates (if all secondary nodes are already impacted, 
       MULTIMP = IPARI(23,NIN)
       MULNSN  = INTBUF_TAB%S_CAND_N - NCONT
       CALL I25BUCE(
-     1 X      ,V           ,INTBUF_TAB%IRECTM(1+4*SSHIFT),INTBUF_TAB%NSV,
+     1 X      ,V           ,IRECTM_C,INTBUF_TAB%NSV,
      +                                                 INTBUF_TAB%STFNS,
      2 NMN    ,NRTM_T      ,NSN            ,INTBUF_TAB%CAND_E,INTBUF_TAB%CAND_N,
      3 GAP    ,NOINT       ,INTBUF_TAB%I_STOK(1)   ,MULNSN     ,BMINMA       ,
      4 MARGE  ,CURV_MAX    ,PMAX_GAP       ,VMAXDT       ,
-     5 SSHIFT ,NIN         ,INTBUF_TAB%STFM(1+SSHIFT) ,INTBUF_TAB%GAP_S,
-     6 NSNR   ,NCONT       ,INTBUF_TAB%GAP_M(1+SSHIFT)   ,ITASK      ,INTBUF_TAB%VARIABLES(bgapsmx_index),
+     5 SSHIFT ,NIN         ,STFM_C         ,INTBUF_TAB%GAP_S,
+     6 NSNR   ,NCONT       ,GAP_M_C   ,ITASK      ,INTBUF_TAB%VARIABLES(bgapsmx_index),
      7 I_MEM  ,INTBUF_TAB%PENE_OLD,ITAB          ,INTBUF_TAB%NBINFLG,INTBUF_TAB%MBINFLG,
      8 ILEV   ,INTBUF_TAB%MSEGTYP24,
-     9 FLAGREMN,INTBUF_TAB%KREMNODE(1+2*SSHIFT),INTBUF_TAB%REMNODE,
-     A IGAP   ,INTBUF_TAB%GAP_SL,INTBUF_TAB%GAP_ML(1+SSHIFT),ICODT,ISKEW   ,
+     9 FLAGREMN,KREMNODE_C,INTBUF_TAB%REMNODE,
+     A IGAP   ,INTBUF_TAB%GAP_SL,GAP_ML_C,ICODT,ISKEW   ,
      B DRAD   ,DGAPLOAD    )
 C
 C Upgrade MultiMP
@@ -491,6 +560,7 @@ C
       MULNSNE = INTBUF_TAB%S_CANDM_E2E
       MULNSNS = INTBUF_TAB%S_CANDM_E2S
       NEDGE_LOCAL = INTBUF_TAB%NB_INTERNAL_EDGES + INTBUF_TAB%NB_BOUNDARY_EDGES_LOCAL
+c      write(*,*) 'NEDGE',INTBUF_TAB%NB_INTERNAL_EDGES , INTBUF_TAB%NB_BOUNDARY_EDGES_LOCAL,NEDGE_LOCAL,NEDGE_T,NEDGE 
       CALL I25BUCE_EDG(
      1 X      ,V           ,INTBUF_TAB%IRECTM,INACTI ,
      2 NSN    ,NMN    ,INTBUF_TAB%CANDM_E2E,INTBUF_TAB%CANDS_E2E,
@@ -544,6 +614,7 @@ C New barrier needed for Dynamic MultiMP
         INTBUF_TAB%I_STOK_E(1:2)=CAND_E_OLD(1:2) ! on retrie tout
         GOTO 140
       ENDIF
+         if(ncycle ==1)write(*,*) 'I_STOK_E',ncycle,ispmd,NEDGE,INTBUF_TAB%I_STOK_E(1:2)
 C
       IF(ITASK==0)DEALLOCATE(INTBUF_TAB%I25_CAND_A,INTBUF_TAB%I25_CAND_B)
 C

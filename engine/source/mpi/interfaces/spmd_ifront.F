@@ -339,6 +339,7 @@ C                 WRITE(6,*) __FILE__,ISPMD,"RECV",P-1,LEN
                   DO I = 1, LEN
                     ASSERT(NSVFIE(NIN)%P(IDEB2+I) > 0)
                     MSGBUF_S(P)%P(IDEB+I) = ABS(NSVFIE(NIN)%P(IDEB2+I))
+      if(ncycle==0.and.ispmd==0) write(*,*) 'spm ifront',ispmd,ncycle,P,i,len,NSVFIE(NIN)%P(IDEB2+I)
                   ENDDO
                   IDEBUT2(NIN) = IDEBUT2(NIN) + LEN
                   IDEB = IDEB + LEN

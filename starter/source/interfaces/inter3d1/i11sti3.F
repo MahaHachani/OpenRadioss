@@ -325,6 +325,7 @@ C -----Friction model ------
               IPARTFRIC(INRT) = IPL
             ENDIF
           ENDIF
+        IF(itab(IRECT(1,I))==21027232.or.itab(IRECT(2,I))==21027232) write(*,*) 'edge nelc',i,itab(IRECT(1,I)),itab(IRECT(2,I)),NELS,NELC,NELTG,NELT,NELP,NELR,NUMELX
 C------------------------------------
         ENDIF
         CALL I11FIL(IRECT,IXT ,IXP,IXR,NINTR,NELT ,
@@ -388,11 +389,13 @@ C------------------------------------
             DX1=SQRT(GEO(1,MG))
           END IF
           DX=SQRT(GEO(1,MG))
+           write(*,*)'nelp 1',i,NELP,DX,DX1,GAP_SM(I)
           GAP_SM(I)=MAX(GAP_SM(I),HALF*DX1)
           GAPS1=MAX(GAPS1,GAP_SM(I))
           GAPMN = MIN(GAPMN,DX1)
           DXM=DXM+DX
           NDX=NDX+1
+             write(*,*)'nelp',i,NELP,DX,DX1,GAP_SM(I)
           IF(MT > 0)THEN
             STF(I)=SLSFAC*DX*PM(20,MT)
             IF (NSUBDOM>0) STF(I)=SLSFAC*DX*PM_R2R(MT)
@@ -425,6 +428,7 @@ C -----Friction model ------
               IPARTFRIC(INRT) = IPL
             ENDIF
           ENDIF
+        IF(itab(IRECT(1,I))==21027232.or.itab(IRECT(2,I))==21027232) write(*,*) 'edge nelp',i,itab(IRECT(1,I)),itab(IRECT(2,I)),NELS,NELC,NELTG,NELT,NELP,NELR,NUMELX
 C------------------------------------
         ELSEIF(NELR /= 0) THEN
           MG=IXR(1,NELR)
@@ -534,6 +538,8 @@ C------------------------------------
      .                  I2=I)
           ENDIF
         ENDIF
+        IF(itab(IRECT(1,I))==21027232.or.itab(IRECT(2,I))==21027232) write(*,*) 'edge',i,itab(IRECT(1,I)),itab(IRECT(2,I)),NELS,NELC,NELTG,NELT,NELP,NELR,NUMELX
+c        write(*,*) 'gap stif',i,gap_sm(i),stf(i)
       ENDDO!I=1,NRT
 C---------------------------------------------
 C

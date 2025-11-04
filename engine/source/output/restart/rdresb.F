@@ -1053,6 +1053,7 @@ C--------------------------------------
 C     READING REALS
 C--------------------------------------
         CALL READ_DB(NODES%X,SX)
+      write(*,*) 'sp x',SX
         CALL READ_DB(NODES%D,SD)
         CALL READ_DB(NODES%V,SV)
         CALL READ_DB(NODES%VR,SVR)
@@ -1069,6 +1070,7 @@ C--------------------------------------
         IF (N2D >0) THEN
             CALL READ_DB(MS_2D,NUMNOD)
         ENDIF
+      write(*,*) 'sm ',sms
 
         CALL READ_DB(NODES%IN,SIN)
 
@@ -1208,6 +1210,8 @@ C--------------------------------------
         CALL READ_DB(ACONTACT ,SRCONTACT)
         CALL READ_DB(PCONTACT ,SRCONTACT)
 
+      write(*,*) 'ap srcontact '
+
 C lecture struture interface partie reelle si irunn > 1
         IF(IRUNN>1.OR.MCHECK/=0) CALL SPMD_INITFI(IPARI,2,H3D_DATA,INTERFACES%PARAMETERS,
      .                                            GLOB_THERM%IDT_THERM,GLOB_THERM%INTHEAT)
@@ -1251,6 +1255,7 @@ C Read DDP
          ENDIF
        ENDIF
        NPSAV = 29
+      write(*,*) 'ap xdpum '
 C   ----------------------------------------------------------------------
 C     used for checkpoint restarts.
        IF(MCHECK/=0)THEN
@@ -1372,6 +1377,7 @@ C--------------------------------------
       IF(NINTERFRIC /= 0)THEN
         CALL INTFRIC_RRESTR(INTERFACES%INTBUF_FRIC_TAB,NINTERFRIC)
       END IF
+      write(*,*) 'ap intfric '
 C-------------
 C     always
       CALL READ_DB(NODES%MS0,NUMNOD)
@@ -1431,6 +1437,7 @@ C--------------------------------------
       IF (NEIG>0) THEN
          CALL EIGRREST()
       ENDIF
+      write(*,*) 'ap eig '
 C--------------------------------------
 C   SEATBELTS - SLIPRING / RETRACTOR / GUIDE-
 C--------------------------------------
@@ -1707,7 +1714,8 @@ C--------------------------------------
       !       read the previous engine elapsed time
       IF(GLOBAL_COMP_TIME%RUN_NBR>1) THEN
              CALL READ_DPDB(GLOBAL_COMP_TIME%ENGINE_TIME,GLOBAL_COMP_TIME%RUN_NBR-1)
-      ENDIF      
+      ENDIF   
+      write(*,*) 'ap rdresb ' ,ispmd
 C
       RETURN
       END

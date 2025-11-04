@@ -109,6 +109,7 @@ C            Reduction of PENE
              CAND_M_G(ISTOK)= CAND_M(I)
              CAND_S_G(ISTOK)= CAND_S(I)
              CAND_P_G(ISTOK)= -PENE(I)
+       write(*,*) 'pene pwr',ISTOK,CAND_S(I),CAND_M(I), itab(N1(I))    ,itab(N2(I) )    ,itab(M1(I) )     ,itab(M2(I))    ,PENE(I)
            ELSE IF(INACTI==-1) THEN
              ISTOK=ISTOK+1
 C            CAND_P < 0 <=> Initial penetration into the Starter & Initial forces

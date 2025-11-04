@@ -476,13 +476,14 @@ C             ASSERT(IED <= NEDGE)
               IM = INTBUF_TAB(N)%LEDGE(10+(IED-1)*NLEDGE)
 C             ASSERT( (IM == 1 .OR. IM == -1) )
               TYPEDG = INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+7)
-              IF(TYPEDG == 1 .AND. IE > 0) THEN 
-                 NN1 = INTBUF_TAB(N)%ADMSR(JE+(IE-1)*4)
-                 NN2 = INTBUF_TAB(N)%ADMSR(MOD(JE,4)+1+(IE-1)*4)
-              ELSE
-                 NN1 = 0
-                 NN2 = 0
-              ENDIF
+              IF(TYPEDG /=3) THEN
+                IF(TYPEDG == 1 .AND. IE > 0) THEN 
+                   NN1 = INTBUF_TAB(N)%ADMSR(JE+(IE-1)*4)
+                   NN2 = INTBUF_TAB(N)%ADMSR(MOD(JE,4)+1+(IE-1)*4)
+                ELSE
+                   NN1 = 0
+                   NN2 = 0
+                ENDIF
 
 C C====================================================
 C               IF( IM /= 1 .AND. IM /= -1) THEN
@@ -527,198 +528,198 @@ C C====================================================
 C             ASSERT(I1 == INTBUF_TAB(N)%LEDGE(11+(IED-1)*NLEDGE))
 C             ASSERT(I2 == INTBUF_TAB(N)%LEDGE(12+(IED-1)*NLEDGE))
 
-              NRTM = IPARI(4,N)
+                NRTM = IPARI(4,N)
+   
+                PRINTIF(4 +(IE-1)*4 > 4 * NRTM,NRTM)
+                PRINTIF(4 +(IE-1)*4 > 4 * NRTM,IE)
 
-              PRINTIF(4 +(IE-1)*4 > 4 * NRTM,NRTM)
-              PRINTIF(4 +(IE-1)*4 > 4 * NRTM,IE)
+                IF(IE > 0) THEN ! Used only for solids edges
+                  IF(INTBUF_TAB(N)%IRECTM(3 +(IE-1)*4)
+     .          /=   INTBUF_TAB(N)%IRECTM(4 +(IE-1)*4)  ) THEN
+                    N1 = INTBUF_TAB(N)%IRECTM(    JE       +(IE-1)*4)
+                    N2 = INTBUF_TAB(N)%IRECTM(MOD(JE,4)  +1+(IE-1)*4)
+                    N3 = INTBUF_TAB(N)%IRECTM(MOD(JE+1,4)+1+(IE-1)*4)
+                    N4 = INTBUF_TAB(N)%IRECTM(MOD(JE+2,4)+1+(IE-1)*4)
+                  ELSE
+                    N1 = INTBUF_TAB(N)%IRECTM(NTRIA(1,JE)+(IE-1)*4)
+                    N2 = INTBUF_TAB(N)%IRECTM(NTRIA(2,JE)+(IE-1)*4)
+                    N3 = INTBUF_TAB(N)%IRECTM(NTRIA(3,JE)+(IE-1)*4)
+                    N4 = N3
+                  END IF
+                ENDIF
 
-              IF(IE > 0) THEN ! Used only for solids edges
-                IF(INTBUF_TAB(N)%IRECTM(3 +(IE-1)*4)
-     .        /=   INTBUF_TAB(N)%IRECTM(4 +(IE-1)*4)  ) THEN
-                  N1 = INTBUF_TAB(N)%IRECTM(    JE       +(IE-1)*4)
-                  N2 = INTBUF_TAB(N)%IRECTM(MOD(JE,4)  +1+(IE-1)*4)
-                  N3 = INTBUF_TAB(N)%IRECTM(MOD(JE+1,4)+1+(IE-1)*4)
-                  N4 = INTBUF_TAB(N)%IRECTM(MOD(JE+2,4)+1+(IE-1)*4)
-                ELSE
-                  N1 = INTBUF_TAB(N)%IRECTM(NTRIA(1,JE)+(IE-1)*4)
-                  N2 = INTBUF_TAB(N)%IRECTM(NTRIA(2,JE)+(IE-1)*4)
-                  N3 = INTBUF_TAB(N)%IRECTM(NTRIA(3,JE)+(IE-1)*4)
-                  N4 = N3
-                END IF
-              ENDIF
-
-              I1 =  INTBUF_TAB(N)%LEDGE(11+(IED-1)*NLEDGE)
-              I2 =  INTBUF_TAB(N)%LEDGE(12+(IED-1)*NLEDGE)
+                I1 =  INTBUF_TAB(N)%LEDGE(11+(IED-1)*NLEDGE)
+                I2 =  INTBUF_TAB(N)%LEDGE(12+(IED-1)*NLEDGE)
       
-              L = (I-1) * NB_VALUES
+                L = (I-1) * NB_VALUES
 
-              IF(IE > 0) THEN
-                BUFFERS(NI25)%SEND_BUF(L+1)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(1,JE,IE,3,4))
-                BUFFERS(NI25)%SEND_BUF(L+2)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(2,JE,IE,3,4))
-                BUFFERS(NI25)%SEND_BUF(L+3)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(3,JE,IE,3,4))
+                IF(IE > 0) THEN
+                  BUFFERS(NI25)%SEND_BUF(L+1)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(1,JE,IE,3,4))
+                  BUFFERS(NI25)%SEND_BUF(L+2)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(2,JE,IE,3,4))
+                  BUFFERS(NI25)%SEND_BUF(L+3)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(3,JE,IE,3,4))
 
-              ELSEIF (IE < 0) THEN
+                ELSEIF (IE < 0) THEN
 C Local IRECT of the edge is deleted
 C But ISPMD is still in charge to send that secondary edge.
-                BUFFERS(NI25)%SEND_BUF(L+1)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(1,JE,-IE,3,4))
-                BUFFERS(NI25)%SEND_BUF(L+2)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(2,JE,-IE,3,4))
-                BUFFERS(NI25)%SEND_BUF(L+3)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(3,JE,-IE,3,4))
-              ELSE
-                ASSERT(.FALSE.)
-              ENDIF
+                  BUFFERS(NI25)%SEND_BUF(L+1)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(1,JE,-IE,3,4))
+                  BUFFERS(NI25)%SEND_BUF(L+2)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(2,JE,-IE,3,4))
+                  BUFFERS(NI25)%SEND_BUF(L+3)  = INTBUF_TAB(N)%EDGE_BISECTOR(TO1D(3,JE,-IE,3,4))
+                ELSE
+                  ASSERT(.FALSE.)
+                ENDIF
 C             WRITE(6,*) "Out:",INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8),L
 
-              BUFFERS(NI25)%SEND_BUF(L+4)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(1,1,I1,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+5)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(2,1,I1,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+6)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(3,1,I1,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+7)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(1,2,I1,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+8)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(2,2,I1,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+9)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(3,2,I1,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+10) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(1,1,I2,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+11) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(2,1,I2,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+12) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(3,1,I2,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+13) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(1,2,I2,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+14) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(2,2,I2,3,2))
-              BUFFERS(NI25)%SEND_BUF(L+15) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(3,2,I2,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+4)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(1,1,I1,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+5)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(2,1,I1,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+6)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(3,1,I1,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+7)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(1,2,I1,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+8)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(2,2,I1,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+9)  = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(3,2,I1,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+10) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(1,1,I2,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+11) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(2,1,I2,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+12) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(3,1,I2,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+13) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(1,2,I2,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+14) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(2,2,I2,3,2))
+                BUFFERS(NI25)%SEND_BUF(L+15) = INTBUF_TAB(N)%VTX_BISECTOR(TO1D(3,2,I2,3,2))
 
 
 
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+5) ))
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+6) ))
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+7) ))
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+8) ))
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+9) ))
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+10)))
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+11)))
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+12)))
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+13)))
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+14)))              
-              ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+15)))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+5) ))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+6) ))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+7) ))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+8) ))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+9) ))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+10)))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+11)))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+12)))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+13)))
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+14)))              
+                ASSERT( .NOT. isnan( BUFFERS(NI25)%SEND_BUF(L+15)))
+  
+                BUFFERS(NI25)%SEND_BUF(L+16) =
+     .          TRANSFER(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+1),BUFFERS(NI25)%SEND_BUF(L+16))
+                BUFFERS(NI25)%SEND_BUF(L+17) = 
+     .          TRANSFER(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+2),BUFFERS(NI25)%SEND_BUF(L+17))
+                BUFFERS(NI25)%SEND_BUF(L+18) =
+     .          TRANSFER(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+3),BUFFERS(NI25)%SEND_BUF(L+18))
+                BUFFERS(NI25)%SEND_BUF(L+19) = 
+     .          TRANSFER(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+4),BUFFERS(NI25)%SEND_BUF(L+19))
 
-              BUFFERS(NI25)%SEND_BUF(L+16) =
-     .        TRANSFER(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+1),BUFFERS(NI25)%SEND_BUF(L+16))
-              BUFFERS(NI25)%SEND_BUF(L+17) = 
-     .        TRANSFER(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+2),BUFFERS(NI25)%SEND_BUF(L+17))
-              BUFFERS(NI25)%SEND_BUF(L+18) =
-     .        TRANSFER(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+3),BUFFERS(NI25)%SEND_BUF(L+18))
-              BUFFERS(NI25)%SEND_BUF(L+19) = 
-     .        TRANSFER(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+4),BUFFERS(NI25)%SEND_BUF(L+19))
-
-              EID = INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+LEDGE_GLOBAL_ID)
-              DEBUG_E2E(EID==D_ES, INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+3))
+                EID = INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+LEDGE_GLOBAL_ID)
+                DEBUG_E2E(EID==D_ES, INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+3))
 
 
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(1,N1))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(2,N1))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(3,N1))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(1,N2))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(2,N2))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(3,N2))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(1,N3))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(2,N3))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(3,N3))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(1,N4))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(2,N4))
-              DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(3,N4))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(1,N1))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(2,N1))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(3,N1))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(1,N2))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(2,N2))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(3,N2))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(1,N3))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(2,N3))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(3,N3))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(1,N4))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(2,N4))
+                DEBUG_E2E(INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8) == D_ES,X(3,N4))
 
-              IF(IE > 0) THEN
+                IF(IE > 0) THEN
 #ifdef MYREAL8
-                BUFFERS(NI25)%SEND_BUF(L+20:L+20+1)=TRANSFER(X(1,N1),SP,2) 
-                BUFFERS(NI25)%SEND_BUF(L+22:L+22+1)=TRANSFER(X(2,N1),SP,2) 
-                BUFFERS(NI25)%SEND_BUF(L+24:L+24+1)=TRANSFER(X(3,N1),SP,2) 
-                BUFFERS(NI25)%SEND_BUF(L+26:L+26+1)=TRANSFER(X(1,N2),SP,2) 
-                BUFFERS(NI25)%SEND_BUF(L+28:L+28+1)=TRANSFER(X(2,N2),SP,2) 
-                BUFFERS(NI25)%SEND_BUF(L+30:L+30+1)=TRANSFER(X(3,N2),SP,2) 
-                BUFFERS(NI25)%SEND_BUF(L+32:L+32+1)=TRANSFER(X(1,N3),SP,2)
-                BUFFERS(NI25)%SEND_BUF(L+34:L+34+1)=TRANSFER(X(2,N3),SP,2)
-                BUFFERS(NI25)%SEND_BUF(L+36:L+36+1)=TRANSFER(X(3,N3),SP,2)
-                BUFFERS(NI25)%SEND_BUF(L+38:L+38+1)=TRANSFER(X(1,N4),SP,2)
-                BUFFERS(NI25)%SEND_BUF(L+40:L+40+1)=TRANSFER(X(2,N4),SP,2)
-                BUFFERS(NI25)%SEND_BUF(L+42:L+42+1)=TRANSFER(X(3,N4),SP,2)
-                PP = 43
+                  BUFFERS(NI25)%SEND_BUF(L+20:L+20+1)=TRANSFER(X(1,N1),SP,2) 
+                  BUFFERS(NI25)%SEND_BUF(L+22:L+22+1)=TRANSFER(X(2,N1),SP,2) 
+                  BUFFERS(NI25)%SEND_BUF(L+24:L+24+1)=TRANSFER(X(3,N1),SP,2) 
+                  BUFFERS(NI25)%SEND_BUF(L+26:L+26+1)=TRANSFER(X(1,N2),SP,2) 
+                  BUFFERS(NI25)%SEND_BUF(L+28:L+28+1)=TRANSFER(X(2,N2),SP,2) 
+                  BUFFERS(NI25)%SEND_BUF(L+30:L+30+1)=TRANSFER(X(3,N2),SP,2) 
+                  BUFFERS(NI25)%SEND_BUF(L+32:L+32+1)=TRANSFER(X(1,N3),SP,2)
+                  BUFFERS(NI25)%SEND_BUF(L+34:L+34+1)=TRANSFER(X(2,N3),SP,2)
+                  BUFFERS(NI25)%SEND_BUF(L+36:L+36+1)=TRANSFER(X(3,N3),SP,2)
+                  BUFFERS(NI25)%SEND_BUF(L+38:L+38+1)=TRANSFER(X(1,N4),SP,2)
+                  BUFFERS(NI25)%SEND_BUF(L+40:L+40+1)=TRANSFER(X(2,N4),SP,2)
+                  BUFFERS(NI25)%SEND_BUF(L+42:L+42+1)=TRANSFER(X(3,N4),SP,2)
+                  PP = 43
 #else
-                BUFFERS(NI25)%SEND_BUF(L+20) = X(1,N1)  
-                BUFFERS(NI25)%SEND_BUF(L+21) = X(2,N1)  
-                BUFFERS(NI25)%SEND_BUF(L+22) = X(3,N1)  
-                BUFFERS(NI25)%SEND_BUF(L+23) = X(1,N2)  
-                BUFFERS(NI25)%SEND_BUF(L+24) = X(2,N2)  
-                BUFFERS(NI25)%SEND_BUF(L+25) = X(3,N2)  
-                BUFFERS(NI25)%SEND_BUF(L+26) = X(1,N3) 
-                BUFFERS(NI25)%SEND_BUF(L+27) = X(2,N3) 
-                BUFFERS(NI25)%SEND_BUF(L+28) = X(3,N3) 
-                BUFFERS(NI25)%SEND_BUF(L+29) = X(1,N4) 
-                BUFFERS(NI25)%SEND_BUF(L+30) = X(2,N4) 
-                BUFFERS(NI25)%SEND_BUF(L+31) = X(3,N4) 
-                PP = 31
+                  BUFFERS(NI25)%SEND_BUF(L+20) = X(1,N1)  
+                  BUFFERS(NI25)%SEND_BUF(L+21) = X(2,N1)  
+                  BUFFERS(NI25)%SEND_BUF(L+22) = X(3,N1)  
+                  BUFFERS(NI25)%SEND_BUF(L+23) = X(1,N2)  
+                  BUFFERS(NI25)%SEND_BUF(L+24) = X(2,N2)  
+                  BUFFERS(NI25)%SEND_BUF(L+25) = X(3,N2)  
+                  BUFFERS(NI25)%SEND_BUF(L+26) = X(1,N3) 
+                  BUFFERS(NI25)%SEND_BUF(L+27) = X(2,N3) 
+                  BUFFERS(NI25)%SEND_BUF(L+28) = X(3,N3) 
+                  BUFFERS(NI25)%SEND_BUF(L+29) = X(1,N4) 
+                  BUFFERS(NI25)%SEND_BUF(L+30) = X(2,N4) 
+                  BUFFERS(NI25)%SEND_BUF(L+31) = X(3,N4) 
+                  PP = 31
 #endif
-              ELSE
+                ELSE
 #ifdef MYREAL8
-                BUFFERS(NI25)%SEND_BUF(L+20) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+21) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+22) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+23) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+24) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+25) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+26) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+27) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+28) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+29) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+30) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+31) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+32) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+33) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+34) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+35) = 0
-                BUFFERS(NI25)%SEND_BUF(L+36) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+37) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+38) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+39) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+40) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+41) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+42) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+43) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+20) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+21) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+22) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+23) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+24) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+25) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+26) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+27) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+28) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+29) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+30) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+31) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+32) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+33) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+34) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+35) = 0
+                  BUFFERS(NI25)%SEND_BUF(L+36) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+37) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+38) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+39) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+40) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+41) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+42) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+43) = 0 
 
-                PP = 43
+                  PP = 43
 #else
-                BUFFERS(NI25)%SEND_BUF(L+20) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+21) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+22) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+23) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+24) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+25) = 0  
-                BUFFERS(NI25)%SEND_BUF(L+26) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+27) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+28) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+29) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+30) = 0 
-                BUFFERS(NI25)%SEND_BUF(L+31) = 0 
-                PP = 31
+                  BUFFERS(NI25)%SEND_BUF(L+20) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+21) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+22) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+23) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+24) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+25) = 0  
+                  BUFFERS(NI25)%SEND_BUF(L+26) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+27) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+28) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+29) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+30) = 0 
+                  BUFFERS(NI25)%SEND_BUF(L+31) = 0 
+                  PP = 31
 #endif
-              ENDIF
+                ENDIF
 
 C Send Normal of nodes of second edge : edge solid
 
-              IF(TYPEDG == 1 .AND. NN1 > 0) THEN 
+                IF(TYPEDG == 1 .AND. NN1 > 0) THEN 
 
-                BUFFERS(NI25)%SEND_BUF(L+PP+1)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN1-1)+1)
-                BUFFERS(NI25)%SEND_BUF(L+PP+2)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN1-1)+2)
-                BUFFERS(NI25)%SEND_BUF(L+PP+3)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN1-1)+3)
+                  BUFFERS(NI25)%SEND_BUF(L+PP+1)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN1-1)+1)
+                  BUFFERS(NI25)%SEND_BUF(L+PP+2)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN1-1)+2)
+                  BUFFERS(NI25)%SEND_BUF(L+PP+3)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN1-1)+3)
 
-                BUFFERS(NI25)%SEND_BUF(L+PP+4)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN2-1)+1)
-                BUFFERS(NI25)%SEND_BUF(L+PP+5)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN2-1)+2)
-                BUFFERS(NI25)%SEND_BUF(L+PP+6)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN2-1)+3)
-              ELSE
-                BUFFERS(NI25)%SEND_BUF(L+PP+1)  = 0
-                BUFFERS(NI25)%SEND_BUF(L+PP+2)  = 0
-                BUFFERS(NI25)%SEND_BUF(L+PP+3)  = 0
+                  BUFFERS(NI25)%SEND_BUF(L+PP+4)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN2-1)+1)
+                  BUFFERS(NI25)%SEND_BUF(L+PP+5)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN2-1)+2)
+                  BUFFERS(NI25)%SEND_BUF(L+PP+6)  = INTBUF_TAB(N)%E2S_NOD_NORMAL(3*(NN2-1)+3)
+                ELSE
+                  BUFFERS(NI25)%SEND_BUF(L+PP+1)  = 0
+                  BUFFERS(NI25)%SEND_BUF(L+PP+2)  = 0
+                  BUFFERS(NI25)%SEND_BUF(L+PP+3)  = 0
 
-                BUFFERS(NI25)%SEND_BUF(L+PP+4)  = 0
-                BUFFERS(NI25)%SEND_BUF(L+PP+5)  = 0
-                BUFFERS(NI25)%SEND_BUF(L+PP+6)  = 0
-              ENDIF
+                  BUFFERS(NI25)%SEND_BUF(L+PP+4)  = 0
+                  BUFFERS(NI25)%SEND_BUF(L+PP+5)  = 0
+                  BUFFERS(NI25)%SEND_BUF(L+PP+6)  = 0
+                ENDIF
 
 C             EID = INTBUF_TAB(N)%LEDGE((IED-1)*NLEDGE+8)
-
+              ENDIF
             ENDDO
             IF(SEND_SIZE > 0) THEN
               BUFFERS(NI25)%NBISEND = BUFFERS(NI25)%NBISEND + 1

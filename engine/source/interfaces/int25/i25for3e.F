@@ -89,6 +89,7 @@ C-----------------------------------------------
 #include      "parit_c.inc"
 #include      "impl1_c.inc"
 #include      "sms_c.inc"
+#include      "task_c.inc"
 C-----------------------------------------------
 C   D u m m y   A r g u m e n t s
 C-----------------------------------------------
@@ -177,6 +178,7 @@ C
       DO I=1,JLT
         S2 = SQRT(NX(I)**2 + NY(I)**2 + NZ(I)**2)
         DIST(I)=S2
+
         IF(GAPVE(I)/=ZERO)THEN
           PENE(I) = MAX(ZERO,GAPVE(I) - S2)
         ELSE ! Solids
@@ -186,6 +188,18 @@ C
         NX(I) = NX(I)*S2
         NY(I) = NY(I)*S2
         NZ(I) = NZ(I)*S2
+c         write(*,*) 'dist ', i,CS_loc(I),cm_loc(I),DIST(I),GAPVE(I), PENE(I)
+      if(ncycle==14) then
+      if(CS_LOC(I)<=nedge) then
+          if(PENE(I) /= zero.and.(itab(n1(i))==403.and.itab(n2(i))==138.and.itab(m1(i))==494
+     .    .and.itab(m2(i))==490)) write(*,*) 'force  before', i,ispmd,ncycle,CS_loc(I),cm_loc(I),
+     .    itab(n1(i)),itab(n2(i)),itab(m1(i)),itab(m2(i)),DIST(I),gapve(i),pene(i)
+      else
+          if(PENE(I) /= zero.and.(ITAFIE(NIN)%P(N1(i))==403.and.ITAFIE(NIN)%P(N2(i))==138.and.itab(m1(i))==494
+     .    .and.itab(m2(i))==490)) write(*,*) 'force before rem', i,ispmd,ncycle,CS_loc(I),cm_loc(I),
+     .    ITAFIE(NIN)%P(N1(i)),ITAFIE(NIN)%P(N2(i)),itab(m1(i)),itab(m2(i)),DIST(I),gapve(i),pene(i)
+      endif
+       endif
       ENDDO
 
       DO I=1,JLT
@@ -205,10 +219,14 @@ C
             ENDIF
           ENDIF
 C          Reduce PENE
+c          if(tt==zero) write(*,*) 'pene init 1 ', i,CS_loc(I),cm_loc(I),CAND_P(INDEX(I)),pene(i)
+c          if(inacti==5.and.tt==zero) CAND_P(INDEX(I))=PENE(I)
           IF(PENE(I)/=CAND_P(INDEX(I))) ! insures force == zero !
      .      CAND_P(INDEX(I))=MIN(CAND_P(INDEX(I)),
      .                           ((ONE-FIVEEM2)*CAND_P(INDEX(I))+FIVEEM2*PENE(I))  )
           PENE(I)=MAX(ZERO,PENE(I)-CAND_P(INDEX(I)))
+c          if(tt==zero) write(*,*) 'pene init 2 ', i,CS_loc(I),cm_loc(I),CAND_P(INDEX(I)),pene(i)
+
           IF( PENE(I)==ZERO )  STIF(I) = ZERO
         ENDDO
       ELSE
@@ -251,7 +269,28 @@ C-------------------------------------------
         STIF(I)= HALF*STIF(I)
         FNI(I) = -STIF(I) * PENE(I)
         ECONVT = ECONVT+FNI(I)*VN(I)*DT1
+c      if(CS_LOC(I)<=nedge) then
+c          if(PENE(I) /= zero.and.ncycle==47.and.(itab(n1(i))==494.or.itab(n2(i))==494.or.itab(m1(i))==494
+c     .    .or.itab(m2(i))==494)) write(*,*) 'force ', i,ispmd,ncycle,CS_loc(I),cm_loc(I),
+c     .    itab(n1(i)),itab(n2(i)),itab(m1(i)),itab(m2(i)),stif(i),pene(i),fni(i)
+c      else
+c          if(PENE(I) /= zero.and.ncycle==47.and.(itab(m1(i))==494
+c     .    .or.itab(m2(i))==494)) write(*,*) 'force rem', i,ispmd,ncycle,CS_loc(I),cm_loc(I),
+c     .    ITAFIE(NIN)%P(N1(i)),ITAFIE(NIN)%P(N2(i)),itab(m1(i)),itab(m2(i)),stif(i),pene(i),fni(i)
+c      endif
+      if(ncycle==14) then
+      if(CS_LOC(I)<=nedge) then
+          if(PENE(I) /= zero.and.(itab(n1(i))==403.and.itab(n2(i))==138.and.itab(m1(i))==494
+     .    .and.itab(m2(i))==490))write(*,*) 'force ', i,ispmd,ncycle,CS_loc(I),cm_loc(I),
+     .    itab(n1(i)),itab(n2(i)),itab(m1(i)),itab(m2(i)),stif(i),pene(i),fni(i)
+      else
+          if(PENE(I) /= zero.and.(ITAFIE(NIN)%P(N1(i))==403.and.ITAFIE(NIN)%P(N2(i))==138.and.itab(m1(i))==494
+     .    .and.itab(m2(i))==490)) write(*,*) 'force rem', i,ispmd,ncycle,CS_loc(I),cm_loc(I),
+     .    ITAFIE(NIN)%P(N1(i)),ITAFIE(NIN)%P(N2(i)),itab(m1(i)),itab(m2(i)),stif(i),pene(i),fni(i)
+      endif
+       endif
       ENDDO
+
 C---------------------------------
 C     DAMPING + FRIC
 C---------------------------------

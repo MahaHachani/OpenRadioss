@@ -216,6 +216,7 @@ C-----------------------------------------------
 C   C o m m o n   B l o c k s
 C-----------------------------------------------
 #include      "task_c.inc"
+#include      "com01_c.inc"
 C-----------------------------------------------
 C   D u m m y   A r g u m e n t s
 C-----------------------------------------------
@@ -301,12 +302,21 @@ C       END IF
         YY2=X(2,N2)
         ZZ1=X(3,N1)
         ZZ2=X(3,N2)
-        XMAXE=MAX(XX1,XX2)+GAPE(IE) ! +TZINF
-        XMINE=MIN(XX1,XX2)-GAPE(IE) ! -TZINF
-        YMAXE=MAX(YY1,YY2)+GAPE(IE) ! +TZINF
-        YMINE=MIN(YY1,YY2)-GAPE(IE) ! -TZINF
-        ZMAXE=MAX(ZZ1,ZZ2)+GAPE(IE) ! +TZINF
-        ZMINE=MIN(ZZ1,ZZ2)-GAPE(IE) ! -TZINF
+c        IF(LEDGE(7,IE) == 3) THEN
+c          XMAXE=MAX(XX1,XX2)
+c          XMINE=MIN(XX1,XX2)
+c          YMAXE=MAX(YY1,YY2)
+c          YMINE=MIN(YY1,YY2)
+c          ZMAXE=MAX(ZZ1,ZZ2)
+c          ZMINE=MIN(ZZ1,ZZ2)
+c        ELSE
+          XMAXE=MAX(XX1,XX2)+GAPE(IE) ! +TZINF
+          XMINE=MIN(XX1,XX2)-GAPE(IE) ! -TZINF
+          YMAXE=MAX(YY1,YY2)+GAPE(IE) ! +TZINF
+          YMINE=MIN(YY1,YY2)-GAPE(IE) ! -TZINF
+          ZMAXE=MAX(ZZ1,ZZ2)+GAPE(IE) ! +TZINF
+          ZMINE=MIN(ZZ1,ZZ2)-GAPE(IE) ! -TZINF
+c        ENDIF
        !-------------------------------------------!
        !  VOXEL OCCUPIED BY THE EDGE               !
        !-------------------------------------------!
@@ -327,6 +337,8 @@ C       END IF
         IX2=MAX(0,MIN(NBX,IX2))
         IY2=MAX(0,MIN(NBY,IY2))
         IZ2=MAX(0,MIN(NBZ,IZ2))
+c          if(ncycle==0.and.ispmd==2.and.ie==4) WRITE( *,*) "in icrvx 4",ispmd,Ie,ix1,ix2,iy1,iy2,iz1,iz2
+c          if(ncycle==0.and.ispmd==2.and.ie==5) WRITE( *,*) "in icrvx 5",ispmd,Ie,ix1,ix2,iy1,iy2,iz1,iz2
 
          DO IZ = IZ1, IZ2
            DO IY = IY1, IY2
@@ -336,6 +348,7 @@ C       END IF
              END DO
 !$OMP ATOMIC
              CRVOXEL25(IY,IZ,1,LOC_PROC)=IOR(CRVOXEL25(IY,IZ,1,LOC_PROC),TMP)
+c          if(ncycle==0.and.ispmd==2) WRITE( *,*) "icrvx  ",ispmd,IE,IX,IX1,IX2,IY,IY1,IY2,IZ,IZ1,IZ2,BTEST(CRVOXEL25(IY,IZ,1,LOC_PROC),IX)
            END DO
          END DO
       END DO

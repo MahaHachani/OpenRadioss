@@ -401,6 +401,66 @@ C
 !||--- uses       -----------------------------------------------------
 !||    message_mod              ../starter/share/message_module/message_mod.F
 !||====================================================================
+      INTEGER FUNCTION NGR2USRNN(IU,IGRNOD,NGRNOD)
+C-----------------------------------------------
+C   M o d u l e s
+C-----------------------------------------------
+      USE MESSAGE_MOD
+      USE GROUPDEF_MOD
+C-----------------------------------------------
+C   I m p l i c i t   T y p e s
+C-----------------------------------------------
+#include      "implicit_f.inc"
+C-----------------------------------------------
+C   D u m m y   A r g u m e n t s
+C-----------------------------------------------
+      INTEGER IU,NGRNOD
+      INTEGER IGRNOD(NGRNOD)
+C-----------------------------------------------
+C   L o c a l   V a r i a b l e s
+C-----------------------------------------------
+      INTEGER I
+C-----------------------------------------------
+      NGR2USRNN = 0
+      IF(IU == 0)THEN
+        NGR2USRNN=0
+        RETURN
+      ENDIF
+       write(*,*) 'IGRNOD',IU,IGRNOD(1:NGRNOD)
+      DO I=1,NGRNOD
+       write(*,*) 'IGRNOD 2',I,iu,IGRNOD(I)
+        IF (IU == IGRNOD(I)) THEN
+          NGR2USRNN=I
+          RETURN
+        ENDIF
+      ENDDO
+C-----------
+      RETURN
+      END
+C
+!||====================================================================
+!||    ngr2usrn                 ../starter/source/system/nintrr.F
+!||--- called by ------------------------------------------------------
+!||    fail_windshield_init     ../starter/source/materials/fail/windshield_alter/fail_windshield_init.F
+!||    hm_pre_read_link         ../starter/source/constraints/rigidlink/hm_pre_read_rlink.F
+!||    hm_preread_cload         ../starter/source/loads/general/cload/hm_preread_cload.F
+!||    hm_preread_convec        ../starter/source/loads/thermic/hm_preread_convec.F
+!||    hm_preread_grav          ../starter/source/loads/general/grav/hm_preread_grav.F
+!||    hm_preread_impacc        ../starter/source/constraints/general/impvel/hm_preread_impacc.F
+!||    hm_preread_impdisp       ../starter/source/constraints/general/impvel/hm_preread_impdisp.F
+!||    hm_preread_impflux       ../starter/source/constraints/thermic/hm_preread_impflux.F
+!||    hm_preread_imptemp       ../starter/source/constraints/thermic/hm_preread_imptemp.F
+!||    hm_preread_impvel        ../starter/source/constraints/general/impvel/hm_preread_impvel.F
+!||    hm_preread_load_centri   ../starter/source/loads/general/load_centri/hm_preread_load_centri.F
+!||    hm_preread_radiation     ../starter/source/loads/thermic/hm_preread_radiation.F
+!||    hm_preread_rbe2          ../starter/source/constraints/general/rbe2/hm_read_rbe2.F
+!||    hm_preread_xelem         ../starter/source/elements/reader/hm_preread_xelem.F
+!||    prelecdet                ../starter/source/initial_conditions/detonation/prelecdet.F
+!||    random_walk_dmg          ../starter/source/materials/fail/fractal/random_walk_dmg.F90
+!||    setrb2on                 ../starter/source/constraints/general/rbe2/hm_read_rbe2.F
+!||--- uses       -----------------------------------------------------
+!||    message_mod              ../starter/share/message_module/message_mod.F
+!||====================================================================
       INTEGER FUNCTION NGR2USRN(IU,IGRNOD,NGRNOD,NUM)
 C-----------------------------------------------
 C   M o d u l e s

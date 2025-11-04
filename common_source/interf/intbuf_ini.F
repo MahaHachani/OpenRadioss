@@ -323,6 +323,8 @@ C---------will be cleaned after
           INTBUF_TAB(NI)%S_IELEM_M  = INTBUF_SIZE(N)
           N = N+1
           INTBUF_TAB(NI)%S_PROC_MVOISIN  = INTBUF_SIZE(N)
+          N = N+1
+          INTBUF_TAB(NI)%S_MSR_1D  = INTBUF_SIZE(N)
 
 C=======================================================================
 c READ REAL SIZES
@@ -1319,6 +1321,12 @@ C----------to be cleaned later
           ALLOCATE(INTBUF_TAB(NI)%PROC_MVOISIN(SIZ))
           IF(SIZ>0)THEN
             CALL READ_I_C(INTBUF_TAB(NI)%PROC_MVOISIN,SIZ)
+          ENDIF
+
+          SIZ = INTBUF_TAB(NI)%S_MSR_1D
+          ALLOCATE(INTBUF_TAB(NI)%MSR_1D(SIZ))
+          IF(SIZ>0)THEN
+            CALL READ_I_C(INTBUF_TAB(NI)%MSR_1D,SIZ)
           ENDIF
 C=======================================================================
 c READ REAL ARRAYS

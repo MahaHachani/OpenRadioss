@@ -28,7 +28,8 @@ Copyright>        commercial version may interest you: https://www.altair.com/ra
        SUBROUTINE I25BUCE_CRIT(
      1       X       ,NSV     ,MSR         ,NSN       ,NMN     ,
      2       ITASK   ,XSAV    ,NIN         ,STFN      ,V       ,
-     3       XSLV_G  ,XMSR_G  ,VSLV_G      ,VMSR_G    )
+     3       XSLV_G  ,XMSR_G  ,VSLV_G      ,VMSR_G    ,NMN_1D  ,
+     4       MSR_1D  )
 C-----------------------------------------------
 C   I m p l i c i t   T y p e s
 C-----------------------------------------------
@@ -47,10 +48,12 @@ C-----------------------------------------------
       my_real
      .   X(3,*), V(3,*), XSAV(3,*), STFN(*),
      .   XSLV_G(*),XMSR_G(*), VSLV_G(*), VMSR_G(*)
+      INTEGER , INTENT(IN) :: NMN_1D
+      INTEGER , INTENT(IN) :: MSR_1D(NMN_1D)
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
-      INTEGER NSNF, NMNF, NSNL, NMNL, I, J, II
+      INTEGER NSNF, NMNF, NSNL, NMNL, I, J, II,NMN_1DF,NMN_1DL
       my_real
      .  XSLV(18),XMSR(12), VSLV(6), VMSR(6)
 C-----------------------------------------------
@@ -90,9 +93,12 @@ C
       NSNL = (ITASK+1)*NSN / NTHREAD
       NMNF = 1 + ITASK*NMN / NTHREAD
       NMNL = (ITASK+1)*NMN / NTHREAD
+      NMN_1DF = 1 + ITASK*NMN_1D / NTHREAD
+      NMN_1DL = (ITASK+1)*NMN_1D / NTHREAD
+      write(*,*) 'nmn',NMN_1D,NMN_1DF,NMN_1DL
 
 C=======================================================================
-      IF(NSN+NMN < NUMNOD)THEN
+      IF(NSN+NMN+NMN_1D < NUMNOD)THEN
 C
 #include "vectorize.inc"
         DO I=NSNF,NSNL
@@ -118,6 +124,49 @@ C
         DO I=NMNF,NMNL
           II = I+NSN
           J=MSR(I)
+          IF(J>0) THEN
+
+            XMSR(1) =MAX(XMSR(1),X(1,J)-XSAV(1,II))
+            XMSR(2) =MAX(XMSR(2),X(2,J)-XSAV(2,II))
+            XMSR(3) =MAX(XMSR(3),X(3,J)-XSAV(3,II))
+            XMSR(4) =MIN(XMSR(4),X(1,J)-XSAV(1,II))
+            XMSR(5) =MIN(XMSR(5),X(2,J)-XSAV(2,II))
+            XMSR(6) =MIN(XMSR(6),X(3,J)-XSAV(3,II))
+
+            VMSR(1)=MAX(VMSR(1),V(1,J))
+            VMSR(2)=MAX(VMSR(2),V(2,J))
+            VMSR(3)=MAX(VMSR(3),V(3,J))
+            VMSR(4)=MIN(VMSR(4),V(1,J))
+            VMSR(5)=MIN(VMSR(5),V(2,J))
+            VMSR(6)=MIN(VMSR(6),V(3,J))
+          ENDIF
+        END DO
+#include "vectorize.inc"
+        DO I=NMN_1DF,NMN_1DL
+          II = I+NSN+NMN
+          J=MSR_1D(I)
+          IF(J>0) THEN
+
+            XSLV(1) =MAX(XSLV(1),X(1,J)-XSAV(1,I))
+            XSLV(2) =MAX(XSLV(2),X(2,J)-XSAV(2,I))
+            XSLV(3) =MAX(XSLV(3),X(3,J)-XSAV(3,I))
+            XSLV(4) =MIN(XSLV(4),X(1,J)-XSAV(1,I))
+            XSLV(5) =MIN(XSLV(5),X(2,J)-XSAV(2,I))
+            XSLV(6) =MIN(XSLV(6),X(3,J)-XSAV(3,I))
+
+            VSLV(1)=MAX(VSLV(1),V(1,J))
+            VSLV(2)=MAX(VSLV(2),V(2,J))
+            VSLV(3)=MAX(VSLV(3),V(3,J))
+            VSLV(4)=MIN(VSLV(4),V(1,J))
+            VSLV(5)=MIN(VSLV(5),V(2,J))
+            VSLV(6)=MIN(VSLV(6),V(3,J))
+          ENDIF
+        END DO
+
+#include "vectorize.inc"
+        DO I=NMN_1DF,NMN_1DL
+          II = I+NSN+NMN
+          J=MSR_1D(I)
           IF(J>0) THEN
 
             XMSR(1) =MAX(XMSR(1),X(1,J)-XSAV(1,II))
@@ -179,7 +228,52 @@ C
             VMSR(6)=MIN(VMSR(6),V(3,J))
           ENDIF
         ENDDO
+#include "vectorize.inc"
+        DO I=NMN_1DF,NMN_1DL
+          J=MSR_1D(I)
+          IF(J>0) THEN
+
+            XSLV(1)=MAX(XSLV(1),X(1,J)-XSAV(1,J))
+            XSLV(2)=MAX(XSLV(2),X(2,J)-XSAV(2,J))
+            XSLV(3)=MAX(XSLV(3),X(3,J)-XSAV(3,J))
+            XSLV(4)=MIN(XSLV(4),X(1,J)-XSAV(1,J))
+            XSLV(5)=MIN(XSLV(5),X(2,J)-XSAV(2,J))
+            XSLV(6)=MIN(XSLV(6),X(3,J)-XSAV(3,J))
+
+            VSLV(1)=MAX(VSLV(1),V(1,J))
+            VSLV(2)=MAX(VSLV(2),V(2,J))
+            VSLV(3)=MAX(VSLV(3),V(3,J))
+            VSLV(4)=MIN(VSLV(4),V(1,J))
+            VSLV(5)=MIN(VSLV(5),V(2,J))
+            VSLV(6)=MIN(VSLV(6),V(3,J))
+C            
+           
+          ENDIF
+        END DO
+
+#include "vectorize.inc"
+        DO I=NMN_1DF,NMN_1DL
+          J=MSR_1D(I)
+          IF(J>0) THEN
+
+            XMSR(1)=MAX(XMSR(1),X(1,J)-XSAV(1,J))
+            XMSR(2)=MAX(XMSR(2),X(2,J)-XSAV(2,J))
+            XMSR(3)=MAX(XMSR(3),X(3,J)-XSAV(3,J))
+            XMSR(4)=MIN(XMSR(4),X(1,J)-XSAV(1,J))
+            XMSR(5)=MIN(XMSR(5),X(2,J)-XSAV(2,J))
+            XMSR(6)=MIN(XMSR(6),X(3,J)-XSAV(3,J))
+
+            VMSR(1)=MAX(VMSR(1),V(1,J))
+            VMSR(2)=MAX(VMSR(2),V(2,J))
+            VMSR(3)=MAX(VMSR(3),V(3,J))
+            VMSR(4)=MIN(VMSR(4),V(1,J))
+            VMSR(5)=MIN(VMSR(5),V(2,J))
+            VMSR(6)=MIN(VMSR(6),V(3,J))
+          ENDIF
+        ENDDO
+
       ENDIF       
+
 C dist is calculated once for all interfaces in comcrit (see below)
 C
       IF(NSPMD==1) THEN
@@ -217,6 +311,8 @@ C
       VMSR_G(4)=MIN(VMSR_G(4),VMSR(4))
       VMSR_G(5)=MIN(VMSR_G(5),VMSR(5))
       VMSR_G(6)=MIN(VMSR_G(6),VMSR(6))
+c       write(*,*) 'XSLv ', XSLV(1:6), XSLV_G(1:6),VSLV_G(1:6)
+c       write(*,*) 'xmsr', XMSR(1:6),XMSR_G(1:6),VMSR_G(1:6)
 C
 #include "lockoff.inc"
 C

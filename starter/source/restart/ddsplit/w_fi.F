@@ -830,6 +830,7 @@ C
             LEDGE_FIE(1:NODFI*E_IBUF_SIZE) = 0
             IF(NEDGE_KEPT > 0) THEN
               CALL WRITE_I_C(I25_FIE(NI,PROC+1)%ID(1:NEDGE_KEPT),NEDGE_KEPT) ! NSVFIE
+        write(*,*) 'nsvfie',proc,nedge_kept,I25_FIE(NI,PROC+1)%ID(1:NEDGE_KEPT)
 C             CALL WRITE_I_C(TAGE(1:NODFI),NODFI) ! ITAFIE
 C             CALL WRITE_I_C(MAIN_FIE(1:NEDGE_KEPT),NEDGE_KEPT)!MAIN_FIE
 

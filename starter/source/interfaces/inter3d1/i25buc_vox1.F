@@ -188,7 +188,6 @@ C     TAILLE BUCKET MIN = TZINF  * BUMULT
 ! special case for floor and wall with only one element
 ! the margin may be too large when a wall is modeled with only one element
       END IF
-
       DD=DD0
 
 C     TZINF = BUMULT*DD

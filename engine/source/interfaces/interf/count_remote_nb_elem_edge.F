@@ -128,6 +128,7 @@ C-----------------------------------------------
             N3 = LOCAL_NODE(3)
             N4 = LOCAL_NODE(4)
             NUMBER_ELEMENT_HERE = 0
+c         write(*,*) 'nin node',nin,GLOBAL_NODE(1:4),LOCAL_NODE(1:4)
             ! ---------------
             ! loop over the elements connected to N1 
             DO I=ADDCNEL(N1),ADDCNEL(N1+1)-1

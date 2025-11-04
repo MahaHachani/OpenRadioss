@@ -1373,6 +1373,7 @@ C=======================================================================
           !-----------!
           ! CANDM_E2E
           !-----------!
+         write(*,*) 'old siz',ni,OLD_SIZE,MULTIMP,NCONTE,INTBUF_TAB%S_CANDM_E2E,NEW_SIZE
           DO I=1,OLD_SIZE
             OLD_TAB_I(I)=INTBUF_TAB%CANDM_E2E(I)
           ENDDO

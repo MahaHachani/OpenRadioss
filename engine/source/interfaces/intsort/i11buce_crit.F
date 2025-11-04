@@ -267,6 +267,8 @@ C
       VMSR_G(4)=MIN(VMSR_G(4),VMSR(4))
       VMSR_G(5)=MIN(VMSR_G(5),VMSR(5))
       VMSR_G(6)=MIN(VMSR_G(6),VMSR(6))
+c       write(*,*) 'XSLv ', XSLV(1:6), XSLV_G(1:6),VSLV_G(1:6)
+c       write(*,*) 'xmsr', XMSR(1:6),XMSR_G(1:6),VMSR_G(1:6)
 #include "lockoff.inc"
 C
       RETURN

@@ -36,7 +36,7 @@ Copyright>        commercial version may interest you: https://www.altair.com/ra
      4                        IEDGE ,NEDGE  ,LEDGE  ,MVOISIN,NSV,
      5                        IGAP0 ,STFE,   
      6                        S_STFM, S_STFE,IFQ    ,IFPEN  ,
-     7                        CAND_FX,CAND_FY,CAND_FZ,DGAPLOAD)
+     7                        CAND_FX,CAND_FY,CAND_FZ,DGAPLOAD,itab)
 
 C============================================================================
 C   M o d u l e s
@@ -59,7 +59,7 @@ C-----------------------------------------------
       INTEGER IRECT(4,*),CAND_M(*), CAND_S(*),
      .        I_STOK, NIN,IGAP ,ITASK, COUNT_REMSLVE(*), 
      .        IEDGE, NEDGE, IGAP0, LEDGE(NLEDGE,*), MVOISIN(4,*), NSV(*),
-     .        IFPEN(*)
+     .        IFPEN(*),itab(*)
       my_real , INTENT(IN) :: DGAPLOAD ,DRAD
       my_real
      .        X(3,*),GAPE(*),V(3,*),STF(S_STFM),GAP_E_L(*), STFE(S_STFE),
@@ -116,6 +116,25 @@ C
          DO IS = 1, NSEG
 
            I=JS+IS
+          II = CAND_S(I)-NEDGE
+          NN1 = 2*(II-1)+1
+          NN2 = 2*II
+            M1= LEDGE(5,CAND_M(I))
+            M2= LEDGE(6,CAND_M(I))
+           IF(CAND_S(I)<=NEDGE)THEN
+           N1= LEDGE(5,CAND_S(I))
+           N2= LEDGE(6,CAND_S(I))
+
+
+
+        if(ncycle==14.and.(itab(n1)==403.and.itab(n2)==138.and.itab(m1)==494
+     .    .and.itab(m2)==490)) write(*,*) 'itab 590-594 optcd init',
+     .ispmd,ct,CAND_S(I),CAND_m(I),itab(n1),itab(n2),itab(m1),itab(m2)
+          else
+        if(ncycle==14.and.(ITAFIE(NIN)%P(NN1)==403.and.ITAFIE(NIN)%P(NN2)==138.and.itab(m1)==494
+     .    .and.itab(m2)==490)) write(*,*) 'itab 590-594 optcd init remote',
+     .ispmd,ct,CAND_S(I),CAND_m(I),ITAFIE(NIN)%P(NN1),ITAFIE(NIN)%P(NN2),itab(m1),itab(m2)
+          endif
 
            IF(SH_EDGE==1.AND.LEDGE(3,CAND_M(I))/=0) CYCLE ! Shell edge is not a free edge
 
@@ -173,6 +192,14 @@ C            IF(SH_EDGE==1.AND.LEDGE(3,CAND_M(I))/=0) CYCLE ! Shell edge is not 
 
            I=JS+IS
 
+            M1= LEDGE(5,CAND_M(I))
+            M2= LEDGE(6,CAND_M(I))
+           N1= LEDGE(5,CAND_S(I))
+           N2= LEDGE(6,CAND_S(I))
+        if(ncycle==14.and.(itab(n1)==403.and.itab(n2)==138.and.itab(m1)==494
+     .    .and.itab(m2)==490)) write(*,*) 'itab 590-594 optcd init',
+     .ispmd,ct,CAND_S(I),CAND_m(I),itab(n1),itab(n2),itab(m1),itab(m2)
+
 
            IF(SH_EDGE==1.AND.LEDGE(3,CAND_M(I))/=0) CYCLE ! Shell edge is not a free edge
 
@@ -221,6 +248,8 @@ C Loop over local candidates
            S = STFE(CAND_S(I))
          ELSE IF(L < 0) THEN
            S = ONE 
+         ELSEIF(L==0.AND.LEDGE(7,CAND_S(I))==3)THEN
+           S = STFE(CAND_S(I))
          ENDIF
          IF (S/=ZERO) THEN
            N1= LEDGE(5,CAND_S(I))
@@ -233,6 +262,8 @@ C Loop over local candidates
              S = STF(L)
            ELSEIF(L < 0) THEN
              S = ZERO 
+           ELSEIF(L==0.AND.LEDGE(7,CAND_M(I))==3)THEN
+             S = STFE(CAND_M(I))
            ENDIF
            IF (S/=ZERO) THEN
             M1= LEDGE(5,CAND_M(I))
@@ -295,6 +326,9 @@ C
           IF (XMAXS>=XMINM.AND.XMAXM>=XMINS) THEN
             CAND_S(I) = -CAND_S(I)
             COUNT_CAND = COUNT_CAND+1
+         if(ncycle==14.and.(itab(n1)==403.and.itab(n2)==138.and.itab(m1)==494
+     .    .and.itab(m2)==490)) write(*,*) 'itab 590-594 optcd',
+     .ispmd,ct,CAND_S(I),CAND_m(I),itab(n1),itab(n2),itab(m1),itab(m2)
           ENDIF
        ENDDO
 C
@@ -339,6 +373,8 @@ C         IF (STIFIE(NIN)%P(II)/=ZERO) THEN
              S = STF(L)
            ELSE IF( L < 0) THEN
              S = ZERO
+           ELSEIF(L==0.AND.LEDGE(7,CAND_M(I))==3)THEN
+             S = STFE(CAND_M(I))
            ENDIF
            IF (S/=ZERO) THEN
             M1= LEDGE(5,CAND_M(I))
@@ -405,6 +441,9 @@ C
             CAND_S(I) = -CAND_S(I)
             COUNT_CAND = COUNT_CAND+1
             CT = CT+1
+        if(ncycle==14.and.(ITAFIE(NIN)%P(NN1)==403.and.ITAFIE(NIN)%P(NN2)==138.and.itab(m1)==494
+     .    .and.itab(m2)==490)) write(*,*) 'itab 590-594 remote optcd',
+     . ispmd,ct,CAND_S(I),CAND_m(I),ITAFIE(NIN)%P(NN1),ITAFIE(NIN)%P(NN2),itab(m1),itab(m2)
           ENDIF
         ENDDO
         CALL SYNC_DATA(NLS2)
@@ -421,6 +460,7 @@ C
           IFPEN(I) = 0
         ENDDO
       ENDIF
+      if(ncycle == 14)write(*,*) 'cont optc',ncycle,ispmd,COUNT_CAND
 C
 #include "lockon.inc"
       LSKYI_COUNT=LSKYI_COUNT+COUNT_CAND*5 

@@ -181,7 +181,7 @@ C
      .                                                           INTBUF_TAB%NSV ,
      5                    IGAP0 ,INTBUF_TAB%STFE,
      6                    INTBUF_TAB%S_STFM, INTBUF_TAB%S_STFE,IFQ,INTBUF_TAB%IFPEN_E,
-     7     INTBUF_TAB%FTSAVX_E,INTBUF_TAB%FTSAVY_E, INTBUF_TAB%FTSAVZ_E,DGAPLOAD )
+     7     INTBUF_TAB%FTSAVX_E,INTBUF_TAB%FTSAVY_E, INTBUF_TAB%FTSAVZ_E,DGAPLOAD,itab)
 
 
 

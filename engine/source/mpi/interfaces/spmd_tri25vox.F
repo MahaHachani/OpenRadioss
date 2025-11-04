@@ -176,6 +176,7 @@ C=======================================================================
       NBX = LRVOXEL
       NBY = LRVOXEL
       NBZ = LRVOXEL
+c          WRITE( *,*) "debut",ncycle,ispmd,LOC_PROC,ISENDTO(NIN,LOC_PROC),IRCVFROM(NIN,LOC_PROC)
 C
 C Sauvegarde valeur ancienne des nsn frontieres
 C
@@ -192,6 +193,8 @@ C
 C
 C   minmax box for sorting from i7buce bminma
 C
+          if(ncycle==0.and.ispmd==2) WRITE( *,*) "bmina tri spmd init",ispmd,BMINMAL(1:6)
+          if(ncycle==0.and.ispmd==0) WRITE( *,*) "bmina tri spmd init",ispmd,BMINMAL(1:6)
       NEDGE_REMOTE = 0
       DO P = 1, NSPMD
         NSNFI(NIN)%P(P) = 0
@@ -333,7 +336,8 @@ C-----for   NBINFLG
         ALLOCATE(INDEX_EDGE(NEDGE),STAT=IERROR)
         INDEX_EDGE(1:NEDGE) = 0 
       END IF
-      
+    
+c          WRITE( *,*) "ireceive",ncycle,ispmd,LOC_PROC,NBIRECV,ISENDTO(NIN,LOC_PROC)
       IF(ISENDTO(NIN,LOC_PROC)/=0) THEN
         DO KK = 1, NBIRECV
           CALL SPMD_WAITANY(NBIRECV,REQ_RB,INDEXI)
@@ -355,6 +359,7 @@ C
           XMINB = BMINMA(4,P)
           YMINB = BMINMA(5,P)
           ZMINB = BMINMA(6,P)
+          if(ncycle==0.and.ispmd==2.and.P==1) WRITE( *,*) "bmina tri spmd",ispmd,P,BMINMA(1:6,P)
 C ==================== Secnd nodes ============================= 
           DO I=1,NSN
             NOD = NSV(I)
@@ -421,6 +426,8 @@ C            First segment is local
 C            First segment is on the other side of the boundary
              STF = ONE
              IF(MVOISIN(LEDGE(4,I),LEDGE(3,I)) == 0) STF = 0
+           ELSEIF(LEDGE(7,I)==3)THEN
+             STF = STFE(I)
            ELSE ! 
              
              ! ISPMD owns a boundary edge, but the local segment is deleted
@@ -429,17 +436,21 @@ C            First segment is on the other side of the boundary
            DEBUG_E2E(LEDGE(8,I) == D_ES,P-1)
            DEBUG_E2E(LEDGE(8,I) == D_ES,STF)
            DEBUG_E2E(LEDGE(8,I) == D_ES,LEDGE(7,I))
+          if(ncycle == 14.and.(itab(n1)==403.and.itab(n2)==138) ) WRITE( *,*) "in box 4",ispmd,P,I,NEDGE,LEDGE(7,I),STF
 
-
+c          WRITE( *,*) "before in box ",ncycle,ispmd,P,i,STF,LEDGE(7,I)
            IF( STF > ZERO .AND. LEDGE(7,I) >= 0)  THEN
 C
 C            GAPE useless here (Redundant with BGAPEMAX on main side) !
-             XMINS = MIN(X(1,N1),X(1,N2))!- GAPE(I)      
-             YMINS = MIN(X(2,N1),X(2,N2))!- GAPE(I)      
-             ZMINS = MIN(X(3,N1),X(3,N2))!- GAPE(I)      
-             XMAXS = MAX(X(1,N1),X(1,N2))!+ GAPE(I)      
-             YMAXS = MAX(X(2,N1),X(2,N2))!+ GAPE(I)      
-             ZMAXS = MAX(X(3,N1),X(3,N2))!+ GAPE(I)      
+             XMINS = MIN(X(1,N1),X(1,N2))- GAPE(I)      
+             YMINS = MIN(X(2,N1),X(2,N2))- GAPE(I)      
+             ZMINS = MIN(X(3,N1),X(3,N2))- GAPE(I)      
+             XMAXS = MAX(X(1,N1),X(1,N2))+ GAPE(I)      
+             YMAXS = MAX(X(2,N1),X(2,N2))+ GAPE(I)      
+             ZMAXS = MAX(X(3,N1),X(3,N2))+ GAPE(I)   
+c          if(ncycle==0.and.ispmd==2.and.i==4) WRITE( *,*) "in box 4",ispmd,P,I,XMINB,YMINB,ZMINB,dx,dy,dz,NBX,NBY,nbz
+c          if(ncycle==0.and.ispmd==2.and.i==5) WRITE( *,*) "in box 5",ispmd,P,I,XMINB,YMINB,ZMINB,dx,dy,dz,NBX,NBY,nbz 
+
 
              DEBUG_E2E(LEDGE(8,I) == D_ES, XMINS)
              DEBUG_E2E(LEDGE(8,I) == D_ES, YMINS)
@@ -469,6 +480,7 @@ C            GAPE useless here (Redundant with BGAPEMAX on main side) !
                 DO IX=IX1,IX2
                  DO IY=IY1,IY2
                   DO IZ=IZ1,IZ2
+          if(ncycle == 14.and.(itab(n1)==403.and.itab(n2)==138)) WRITE( *,*) "in box ",ispmd,P,I,IX,IX1,IX2,IY,IY1,IY2,IZ,IZ1,IZ2,BTEST(CRVOXEL25(IY,IZ,1,P),IX)
                    IF(BTEST(CRVOXEL25(IY,IZ,1,P),IX)) THEN
                     NB_EDGE = NB_EDGE + 1
                     INDEX_EDGE(NB_EDGE) = I
@@ -487,7 +499,7 @@ C            GAPE useless here (Redundant with BGAPEMAX on main side) !
           ENDIF ! IEDGE
 
           NBOX(2,P) = NB_EDGE
-C         WRITE(6,*) ISPMD,"sends ",NB_EDGE,"to,",P-1
+c         WRITE(6,*) ISPMD,"sends ",NB_EDGE,"to,",P-1
           IF(ITYP==25)THEN
             JDEB = 0
             DO Q=1,P-1
@@ -540,6 +552,7 @@ C
                M2 = LEDGE(6,I)
                IM = LEDGE(10,I)
                IBUF_EDGE(P)%p(E_IM     + L) = IM 
+      if(ncycle==0.and.ispmd==2) write(*,*) 'spmdtrivox',ispmd,P,ncycle,j,i,nb_edge,L,IBUF_EDGE(P)%p(E_GLOBAL_ID    + L),IBUF_EDGE(P)%p(E_LOCAL_ID     + L),ITAB((LEDGE(5,I))),ITAB((LEDGE(6,I))) 
                IF(IDTMINS /= 0) THEN
                  IF(IDTMINS/=2 .AND. IDTMINS_INT == 0) THEN
                  ELSEIF(IDTMINS==2) THEN

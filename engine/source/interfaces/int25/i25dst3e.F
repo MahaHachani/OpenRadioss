@@ -40,10 +40,11 @@ Copyright>        commercial version may interest you: https://www.altair.com/ra
      D   FY     ,FZ    ,LEDGE ,IRECT ,CAND_P ,
      E   IAM    ,JAM    ,IBM    ,JBM    ,IAS    ,
      F   JAS    ,IBS    ,JBS    ,ITAB   ,EDGE_ID,
-     G   DGAPLOADPMAX)
+     G   DGAPLOADPMAX,TYPEDGS,nedge,nin)
 C-----------------------------------------------
 C   I m p l i c i t   T y p e s
 C-----------------------------------------------
+      USE TRI7BOX
 #include      "implicit_f.inc"
 #include      "comlock.inc"
 C-----------------------------------------------
@@ -52,17 +53,19 @@ C-----------------------------------------------
 #include      "mvsiz_p.inc"
 #include      "param_c.inc"
 #include      "sms_c.inc"
+#include      "com01_c.inc"
+#include      "task_c.inc"
 C debug:
 C-----------------------------------------------
 C   D u m m y   A r g u m e n t s
 C-----------------------------------------------
-      INTEGER JLT,JLT_NEW, IEDGE,INTFRIC
+      INTEGER JLT,JLT_NEW, IEDGE,INTFRIC,nin
       INTEGER CAND_S(MVSIZ),CAND_M(MVSIZ),NSMS(MVSIZ),INDEX(*),
      .        N1(MVSIZ),N2(MVSIZ),M1(MVSIZ),M2(MVSIZ),
      .        IAM(MVSIZ),JAM(MVSIZ),IBM(MVSIZ),JBM(MVSIZ),     
      .        IAS(MVSIZ),JAS(MVSIZ),IBS(MVSIZ),JBS(MVSIZ),
      .        IPARTFRICSI(MVSIZ),IPARTFRICMI(MVSIZ), 
-     .        IRECT(4,*),LEDGE(NLEDGE,*),ITAB(*)
+     .        IRECT(4,*),LEDGE(NLEDGE,*),ITAB(*),nedge
       INTEGER :: EDGE_ID(2,MVSIZ)
       my_real
      .     H1S(*),H2S(*),H1M(*),H2M(*),NX(*),NY(*),NZ(*),STIF(*),
@@ -74,6 +77,7 @@ C-----------------------------------------------
      .     GAPVE(*), EX(*), EY(*), EZ(*), FX(*), FY(*), FZ(*), 
      .     CAND_P(*)
       my_real  , INTENT(IN) :: DGAPLOADPMAX
+      INTEGER  , INTENT(IN) :: TYPEDGS(MVSIZ)
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
@@ -186,6 +190,26 @@ C!!!!!!!!!!!!!!!!!!!!!!!!
        PENE2(I) = GAP2 - NN(I)
        PENE2(I) = MAX(ZERO,PENE2(I)) 
 
+c       if(cand_s(i) <=nedge) then
+c       if(ncycle == 47.and.itab(m1(i))==495.and.itab(m2(i))==494) write(*,*) 'dst ',ncycle,ispmd, ci,cand_s(I),cand_m(I),itab(n1(i)),itab(n2(i)),itab(m1(i)),itab(m2(i)),GAPVE(I),GAP2,NN(I),pene2(i)
+c       if(ncycle == 47.and.itab(m1(i))==495.and.itab(m2(i))==494) write(*,*) 'dste x ',ncycle,ispmd, ci,cand_s(I),cand_m(I),itab(n1(i)),itab(n2(i)),itab(m1(i)),itab(m2(i)),XXS1(I),XXS1(I),XZS1(I),XXS2(I),XYS2(I),XZS2(I),XXM1(I) ,XYM1(I) ,XZM1(I),XXM2(I),XYM2(I),XZM2(I)
+c       else
+c       if(ncycle == 47.and.itab(m1(i))==495.and.itab(m2(i))==494) write(*,*) 'dstremote ',ncycle,ispmd, i,cand_s(I),cand_m(I),ITAFIE(NIN)%P(N1(i)),ITAFIE(NIN)c%P(N2(i)),itab(m1(i)),itab(m2(i)),GAPVE(I),GAP2,NN(I),pene2(i)
+c       if(ncycle == 47.and.itab(m1(i))==495.and.itab(m2(i))==494) write(*,*) 'dstremote x ',ncycle,ispmd, i,cand_s(I),cand_m(I),ITAFIE(NIN)%P(N1(i)),ITAFIE(NIN)c%P(N2(i)),itab(m1(i)),itab(m2(i)),XXS1(I),XXS1(I),XZS1(I),XXS2(I),XYS2(I),XZS2(I),XXM1(I) ,XYM1(I) ,XZM1(I),XXM2(I),XYM2(I),XZM2(I)
+c       endif
+
+
+       if(cand_s(i) <=nedge) then
+       if(ncycle == 14.and.(itab(n1(i))==403.and.itab(n2(i))==138.and.itab(m1(i))==494
+     .    .and.itab(m2(i))==490)) write(*,*) 'dst ',ncycle,ispmd, i,cand_s(I),cand_m(I),itab(n1(i)),itab(n2(i)),itab(m1(i)),itab(m2(i)),GAPVE(I),GAP2,NN(I),pene2(i)
+c       if(ncycle == 47.and.itab(m1(i))==495.and.itab(m2(i))==494) write(*,*) 'dste x ',ncycle,ispmd, ci,cand_s(I),cand_m(I),itab(n1(i)),itab(n2(i)),itab(m1(i)),itab(m2(i)),XXS1(I),XXS1(I),XZS1(I),XXS2(I),XYS2(I),XZS2(I),XXM1(I) ,XYM1(I) ,XZM1(I),XXM2(I),XYM2(I),XZM2(I)
+       else
+       if(ncycle == 14.and.(itab(n1(i))==403.and.itab(n2(i))==138.and.itab(m1(i))==494
+     .    .and.itab(m2(i))==490)) write(*,*) 'dstremote ',ncycle,ispmd, i,cand_s(I),cand_m(I),ITAFIE(NIN)%P(N1(i)),ITAFIE(NIN)%P(N2(i)),itab(m1(i)),itab(m2(i)),GAPVE(I),GAP2,NN(I),pene2(i)
+c       if(ncycle == 47.and.itab(m1(i))==495.and.itab(m2(i))==494) write(*,*) 'dstremote x ',ncycle,ispmd, i,cand_s(I),cand_m(I),ITAFIE(NIN)%P(N1(i)),ITAFIE(NIN)c%P(N2(i)),itab(m1(i)),itab(m2(i)),XXS1(I),XXS1(I),XZS1(I),XXS2(I),XYS2(I),XZS2(I),XXM1(I) ,XYM1(I) ,XZM1(I),XXM2(I),XYM2(I),XZM2(I)
+
+       endif
+
       ENDDO
 C
       SOL_EDGE =IEDGE/10 ! solids
@@ -205,11 +229,11 @@ C                                |
 C                                  |      
 
           P1=ZERO
-          IF(IBM(I)==0)
+          IF(IBM(I)==0.AND.LEDGE(7,CAND_M(I))/=3)
      .      P1=-(NX(I)*EX(I)+NY(I)*EY(I)+NZ(I)*EZ(I)) ! (n(M),SM) > 45 degrees
 
           P2=ZERO
-          IF(IBS(I)==0)
+          IF(IBS(I)==0.AND.TYPEDGS(I)/=3)
      .      P2=  NX(I)*FX(I)+NY(I)*FY(I)+NZ(I)*FZ(I)  ! (n(S),MS) > 45 degrees
 
           NN(I)=SQRT(NN(I))

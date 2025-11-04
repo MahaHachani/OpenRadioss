@@ -62,7 +62,7 @@ C-----------------------------------------------
      .     XYM2(*) ,XZM1(*) ,XZM2(*) ,VXS1(*) ,VXS2(*),
      .     VYS1(*) ,VYS2(*) ,VZS1(*) ,VZS2(*) ,VXM1(*),
      .     VXM2(*) ,VYM1(*) ,VYM2(*) ,VZM1(*) ,VZM2(*),
-     .     MS1(*) ,MS2(*) ,MM1(*) ,MM2(*), GAPV(*)
+     .     MS1(*) ,MS2(*) ,MM1(*) ,MM2(*), GAPV(*),nn
 C-----------------------------------------------
 C   L o c a l   V a r i a b l e s
 C-----------------------------------------------
@@ -168,6 +168,8 @@ C!!!!!!!!!!!!!!!!!!!!!!!!
        GAP2 = (GAPV(I)+DGAPLOAD)*(GAPV(I)+DGAPLOAD)
        PENE2(I) = MAX(GAP2,DRAD2) - NX(I)*NX(I) - NY(I)*NY(I) - NZ(I)*NZ(I)
        PENE2(I) = MAX(ZERO,PENE2(I)) 
+       nn = NX(I)*NX(I) + NY(I)*NY(I) + NZ(I)*NZ(I)
+c       write(*,*) 'dst ', i,cand_s(I),cand_m(I),GAPV(I),GAP2,NN,pene2(i)
 
       ENDDO
 C

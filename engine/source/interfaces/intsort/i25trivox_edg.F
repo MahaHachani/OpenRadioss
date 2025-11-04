@@ -83,6 +83,8 @@ C-----------------------------------------------
 #include      "param_c.inc"
 #include      "assert.inc"
 #include      "i25edge_c.inc"
+#include      "task_c.inc"
+#include      "com01_c.inc"
 C-----------------------------------------------
 C   role of the routine:
 C   ===================
@@ -152,6 +154,7 @@ C-----------------------------------------------
       INTEGER, DIMENSION(:), ALLOCATABLE ::  TAGREMLINE
 C-----------------------------------------------
 C
+
       DRAD2 =ZERO
 
       IF(FLAGREMNODE==2) THEN
@@ -176,6 +179,7 @@ C
       ! allocation of chain arrays                         !
       !---------------------------------------------------------!
       MAX_ADD = MAX(1,4*(NEDGE+NEDGE_REMOTE))
+      if(ncycle==14)write(*,*) 'NEDGE',ispmd,NEDGE,NEDGE_REMOTE,NEDGE_T,II_STOK
       IF(ITASK==0)THEN
         ALLOCATE(LCHAIN_ELEM(1:MAX_ADD))
         ALLOCATE(LCHAIN_NEXT(1:MAX_ADD))
@@ -228,6 +232,7 @@ C         PRINTIF((STFE(I) == 0 .AND.LEDGE(6,I) == D_ES),STFE(I))
             ZZ1=X(3,N1)
             ZZ2=X(3,N2)
             DEBUG_E2E(EID == D_ES,EID)
+            EDGE_TYPE=LEDGE(7,I) 
           ELSE IF(I > NEDGE) THEN
             XX1=XREM_EDGE(E_X1,I-NEDGE)
             XX2=XREM_EDGE(E_X2,I-NEDGE)
@@ -237,6 +242,7 @@ C         PRINTIF((STFE(I) == 0 .AND.LEDGE(6,I) == D_ES),STFE(I))
             ZZ2=XREM_EDGE(E_Z2,I-NEDGE)
             EID = IREM_EDGE(E_GLOBAL_ID,I-NEDGE)
             DEBUG_E2E(EID == D_ES,EID)
+            EDGE_TYPE = IREM_EDGE(E_TYPE,I-NEDGE)
           ELSE
             ! Secondary edge is boundary between domains
             ! ISPMD is not the owner of this edge
@@ -245,7 +251,7 @@ C         PRINTIF((STFE(I) == 0 .AND.LEDGE(6,I) == D_ES),STFE(I))
           ENDIF
           DEBUG_E2E(EID==D_ES,IGAP0)
 
-          IF(IGAP0 == 0)THEN
+          IF(IGAP0 == 0.OR.EDGE_TYPE==3)THEN
             XMAX_EDGS=MAX(XX1,XX2);
             XMIN_EDGS=MIN(XX1,XX2);
             YMAX_EDGS=MAX(YY1,YY2);
@@ -296,6 +302,16 @@ C         PRINTIF((STFE(I) == 0 .AND.LEDGE(6,I) == D_ES),STFE(I))
 
 
           END IF
+
+                IF (i<=NEDGE)THEN
+                  SS1= ITAB(LEDGE(5,i))
+                  SS2= ITAB(LEDGE(6,i))
+                  EID = LEDGE(8,i)
+                ELSE
+                  SS1=IREM_EDGE(E_NODE1_GLOBID,i-NEDGE)
+                  SS2=IREM_EDGE(E_NODE2_GLOBID,i-NEDGE)
+                  EID = IREM_EDGE(E_GLOBAL_ID,i-NEDGE)
+                END IF
 
 
 
@@ -352,6 +368,8 @@ C                      +-->| edge_id    |   0       |  6:LAST <--+
 C                        +------------+-----------+
 C                          |            |              |  MAX_ADD
 C                          +------------+-----------+
+        if(ncycle==1.and.(ss1==403.and.ss2==138)) write(*,*) 'itab 590-594 slave init',
+     .ispmd,i,ss1,ss2,IZ1,IZ2,IY1,IY2,IX1,IX2
           DO IZ = IZ1,IZ2
             DO IY = IY1,IY2
               DO IX = IX1,IX2
@@ -448,12 +466,21 @@ C=======================================================================
         YY2=X(2,N2)
         ZZ1=X(3,N1)
         ZZ2=X(3,N2)
-        XMAX_EDGM=MAX(XX1,XX2)+GAPE(IEDG) ! +TZINF
-        XMIN_EDGM=MIN(XX1,XX2)-GAPE(IEDG) ! -TZINF
-        YMAX_EDGM=MAX(YY1,YY2)+GAPE(IEDG) ! +TZINF
-        YMIN_EDGM=MIN(YY1,YY2)-GAPE(IEDG) ! -TZINF
-        ZMAX_EDGM=MAX(ZZ1,ZZ2)+GAPE(IEDG) ! +TZINF
-        ZMIN_EDGM=MIN(ZZ1,ZZ2)-GAPE(IEDG) ! -TZINF
+        IF(LEDGE(7,IEDG)/=3)THEN
+          XMAX_EDGM=MAX(XX1,XX2)+GAPE(IEDG) ! +TZINF
+          XMIN_EDGM=MIN(XX1,XX2)-GAPE(IEDG) ! -TZINF
+          YMAX_EDGM=MAX(YY1,YY2)+GAPE(IEDG) ! +TZINF
+          YMIN_EDGM=MIN(YY1,YY2)-GAPE(IEDG) ! -TZINF
+          ZMAX_EDGM=MAX(ZZ1,ZZ2)+GAPE(IEDG) ! +TZINF
+          ZMIN_EDGM=MIN(ZZ1,ZZ2)-GAPE(IEDG) ! -TZINF
+        ELSE
+          XMAX_EDGM=MAX(XX1,XX2)
+          XMIN_EDGM=MIN(XX1,XX2)
+          YMAX_EDGM=MAX(YY1,YY2)
+          YMIN_EDGM=MIN(YY1,YY2)
+          ZMAX_EDGM=MAX(ZZ1,ZZ2)
+          ZMIN_EDGM=MIN(ZZ1,ZZ2)
+        ENDIF
         !-------------------------------------------!
         !  VOXEL OCCUPIED BY THE BRICK              !
         !-------------------------------------------!
@@ -481,6 +508,9 @@ C--- IREMGAP - tag of deactivated lines
           ENDDO
         ENDIF
 
+        if(ncycle==14.and.(mm1==494.and.mm2==490)) write(*,*) 'itab 590-594 master init',
+     .ispmd,i,mm1,mm2,IZ1,IZ2,IY1,IY2,IX1,IX2
+
         DO IZ = IZ1,IZ2
           DO IY = IY1,IY2
             DO IX = IX1,IX2
@@ -488,6 +518,19 @@ C--- IREMGAP - tag of deactivated lines
               CHAIN_ADD = VOXEL(IX,IY,IZ)       ! address in the chain array of the first edge stored in the voxel
               DO WHILE(CHAIN_ADD /= 0)          ! loop over edges of the current voxel
                 JJ = LCHAIN_ELEM(CHAIN_ADD)       ! numbers of edge_id swept in the current voxel
+
+                !Second Edge Nodes, exclude couples with common node
+                IF (JJ<=NEDGE)THEN
+                  SS1= ITAB(LEDGE(5,JJ))
+                  SS2= ITAB(LEDGE(6,JJ))
+                  EID = LEDGE(8,JJ)
+                ELSE
+                  SS1=IREM_EDGE(E_NODE1_GLOBID,JJ-NEDGE)
+                  SS2=IREM_EDGE(E_NODE2_GLOBID,JJ-NEDGE)
+                  EID = IREM_EDGE(E_GLOBAL_ID,JJ-NEDGE)
+                END IF
+            if(ncycle==14.and.(MM1==494.and.MM2==490)) write(*,*) 'itab 590-594 trivox init',
+     .  ispmd,JJ,iedg,ss1,ss2,mm1,mm2
 
                 IF(TAGEDG(JJ)/=0)THEN ! Edge already treated vs this main
 
@@ -584,7 +627,11 @@ C-                Remote lines are identified by nodes
                   ENDIF
                 ENDIF
 
+c itab 495 optcd init           0           0          10          44         137         403         495         494
                 J_STOK = J_STOK + 1 !on dispose d'un candidat
+        if(ncycle==14.and.(MM1==494.and.MM2==490)) write(*,*) 'itab 590-594 trivox',
+     .ispmd,J_STOK,ss1,ss2,mm1,mm2
+
                 ASSERT(JJ > 0)
                 ASSERT(JJ <= NEDGE + NEDGE_REMOTE)
                 PROV_S(J_STOK) = JJ      !edge secnd
@@ -647,7 +694,6 @@ C--- IREMGAP - clean of tagremline
 
       ENDDO       !NEXT IEDG
 
-
 C-------------------------------------------------------------------------
 C     FIN DU TRI vs Main shell edges
 C-------------------------------------------------------------------------
@@ -661,6 +707,7 @@ C-------------------------------------------------------------------------
      7                 DGAPLOAD)
 
   300 CONTINUE
+
 C=======================================================================
 C     Sorting vs main solid edges
 C=======================================================================
@@ -992,7 +1039,23 @@ C Barrier to avoid reinitialization before end of sorting
         IF(FLAGREMNODE==2) DEALLOCATE(TAGREMLINE)
       ENDIF
 
-      DEALLOCATE(TAGEDG)
+      DEALLOCATE(TAGEDG) 
+      do i=1,II_STOK
+
+                  mm1= ITAB(LEDGE(5,CANDM_E2E(i)))
+                  mm2= ITAB(LEDGE(6,CANDM_E2E(i)))
+             jj=CANDS_E2E(i)
+                !Second Edge Nodes, exclude couples with common node
+                IF (JJ<=NEDGE)THEN
+                  SS1= ITAB(LEDGE(5,JJ))
+                  SS2= ITAB(LEDGE(6,JJ))
+                ELSE
+                  SS1=IREM_EDGE(E_NODE1_GLOBID,JJ-NEDGE)
+                  SS2=IREM_EDGE(E_NODE2_GLOBID,JJ-NEDGE)
+                END IF
+            if(ncycle==14.and.(MM1==494.and.MM2==490)) write(*,*) 'itab 590-594 trivox fin',
+     .  ispmd,i,jj,CANDM_E2E(i),ss1,ss2,mm1,mm2
+       enddo
 
 C=======================================================================
 
