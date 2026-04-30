@@ -1238,6 +1238,7 @@ C=======================================================================
 C
 C       parallel calculation of normals
 C
+        IF(MOD(NCYCLE,10)==0.OR.RETRI==1) THEN
 C       must garder une barriere avant i25main_norm !!!
         CALL MY_BARRIER
 C
@@ -1257,6 +1258,8 @@ C
        IF (IMON>0 .AND. ITASK==0) THEN
          CALL STOPTIME(TIMERS,TIMER_T25NORM)
          CALL STARTIME(TIMERS,TIMER_T25STFE)
+       ENDIF
+
        ENDIF
        
 !$OMP SINGLE
